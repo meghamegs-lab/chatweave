@@ -3,7 +3,7 @@
   "productName": "xyz.chatboxapp.ce",
   "version": "0.0.1",
   "engines": {
-    "node": ">=20.0.0 <23.0.0",
+    "node": ">=20.0.0",
     "pnpm": ">=10.17.0"
   },
   "private": true,
@@ -57,7 +57,8 @@
     "mobile:android": "pnpm run mobile:sync:android && npx cap open android",
     "mobile:assets": "npx capacitor-assets generate --ios --android",
     "prepare": "node -e \"try { require('husky') } catch(e) { process.exit(0) }\" && husky || true",
-    "translate": "i18next && node script/translate.mjs"
+    "translate": "i18next && node script/translate.mjs",
+    "server:dev": "cd server && pnpm dev"
   },
   "repository": {
     "type": "git",
@@ -138,7 +139,6 @@
     "@types/autosize": "^4.0.3",
     "@types/big.js": "^6.2.2",
     "@types/canvas-confetti": "^1.9.0",
-    "canvas-confetti": "^1.9.4",
     "@types/d3": "^7.4.3",
     "@types/epub": "^0.0.11",
     "@types/gtag.js": "^0.0.13",
@@ -170,6 +170,7 @@
     "babel-loader": "^10.0.0",
     "big.js": "^7.0.1",
     "browserslist-config-erb": "^0.0.3",
+    "canvas-confetti": "^1.9.4",
     "capacitor-plugin-safe-area": "^4.0.0",
     "capacitor-stream-http": "^0.1.0",
     "chalk": "^4.1.2",
@@ -308,6 +309,7 @@
     "ofetch": "^1.0.1",
     "officeparser": "5.0.0",
     "sanitize-filename": "^1.6.3",
+    "socket.io-client": "^4.8.3",
     "uuid": "^9.0.0"
   },
   "browserslist": [],
@@ -325,6 +327,8 @@
     "onlyBuiltDependencies": [
       "@parcel/watcher",
       "@sentry/cli",
+      "bcrypt",
+      "better-sqlite3",
       "core-js",
       "core-js-pure",
       "electron",

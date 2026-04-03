@@ -1,0 +1,50 @@
+{
+  "id": "spotify-playlist",
+  "name": "Spotify Playlist Creator",
+  "version": "1.0.0",
+  "description": "Create and manage Spotify playlists with AI assistance",
+  "iframe_url": "http://localhost:3001/plugins/spotify/",
+  "category": "media",
+  "auth_type": "oauth2",
+  "oauth_config": {
+    "auth_url": "https://accounts.spotify.com/authorize",
+    "token_url": "https://accounts.spotify.com/api/token",
+    "scopes": ["playlist-modify-public", "playlist-modify-private", "user-read-private"],
+    "client_id": "your-spotify-client-id"
+  },
+  "tools": [
+    {
+      "name": "search_tracks",
+      "description": "Search for tracks on Spotify by query string.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Search query (e.g., 'relaxing study music')" },
+          "limit": { "type": "number", "description": "Number of results (default 10, max 50)" }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "create_playlist",
+      "description": "Create a new Spotify playlist on the user's account.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Playlist name" },
+          "description": { "type": "string", "description": "Playlist description" },
+          "track_uris": { "type": "array", "items": { "type": "string" }, "description": "Spotify track URIs to add" }
+        },
+        "required": ["name", "track_uris"]
+      }
+    },
+    {
+      "name": "get_user_playlists",
+      "description": "Get the user's existing Spotify playlists.",
+      "parameters": { "type": "object", "properties": {} }
+    }
+  ],
+  "completion_events": ["playlist_created"],
+  "sandbox": { "permissions": ["allow-scripts", "allow-popups"] },
+  "ui": { "default_height": 400, "max_height": 600, "resizable": true }
+}

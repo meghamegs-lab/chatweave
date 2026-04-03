@@ -188,3 +188,19 @@ storybook-static
 .gstack/
 .worktrees/
 .claude/worktrees/
+
+# Claude Code pipeline artifacts
+.claude/
+PIPELINE-STATUS.json
+PIPELINE-COST.md
+PIPELINE-CONTEXT.md
+PRESEARCH.md
+PRD.md
+ARCHITECTURE.md
+STORIES.md
+CHECKLIST.md
+
+# SQLite database files
+*.db
+*.db-wal
+*.db-shm

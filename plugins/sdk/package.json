@@ -1,0 +1,19 @@
+{
+  "name": "@chatbridge/plugin-sdk",
+  "version": "1.0.0",
+  "description": "SDK for building ChatBridge plugins with postMessage communication",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  },
+  "license": "MIT"
+}

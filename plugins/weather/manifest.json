@@ -1,0 +1,36 @@
+{
+  "id": "weather-dashboard",
+  "name": "Weather Dashboard",
+  "version": "1.0.0",
+  "description": "Check current weather and 5-day forecast for any city",
+  "iframe_url": "http://localhost:3001/plugins/weather/",
+  "category": "tools",
+  "auth_type": "none",
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get the current weather conditions for a city. Returns temperature, conditions, humidity, and wind speed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "city": { "type": "string", "description": "City name (e.g., 'New York', 'London', 'Tokyo')" }
+        },
+        "required": ["city"]
+      }
+    },
+    {
+      "name": "get_forecast",
+      "description": "Get a 5-day weather forecast for a city with daily highs and lows.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "city": { "type": "string", "description": "City name" }
+        },
+        "required": ["city"]
+      }
+    }
+  ],
+  "completion_events": ["weather_displayed"],
+  "sandbox": { "permissions": ["allow-scripts"] },
+  "ui": { "default_height": 350, "max_height": 500, "resizable": true }
+}

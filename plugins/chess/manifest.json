@@ -1,0 +1,35 @@
+{
+  "id": "chess-game",
+  "name": "Chess Learning Game",
+  "version": "1.0.0",
+  "description": "Interactive chess game with AI opponent for learning tactics",
+  "iframe_url": "http://localhost:3001/plugins/chess/",
+  "category": "games",
+  "auth_type": "none",
+  "tools": [
+    {
+      "name": "start_chess_game",
+      "description": "Start a new chess game against the AI. Returns the initial board state.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"], "description": "AI difficulty level" },
+          "color": { "type": "string", "enum": ["white", "black"], "description": "Color the student plays as" }
+        }
+      }
+    },
+    {
+      "name": "get_board_state",
+      "description": "Get the current chess board state in FEN notation for analysis. Use this when the student asks for help or advice during a game.",
+      "parameters": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "get_move_history",
+      "description": "Get the list of all moves made in the current game.",
+      "parameters": { "type": "object", "properties": {} }
+    }
+  ],
+  "completion_events": ["game_finished", "game_abandoned"],
+  "sandbox": { "permissions": ["allow-scripts"] },
+  "ui": { "default_height": 500, "max_height": 600, "resizable": false }
+}
