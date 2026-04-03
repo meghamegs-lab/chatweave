@@ -122,11 +122,13 @@ export async function streamChat(options: StreamChatOptions): Promise<void> {
     // Use fullStream to capture both text and tool call events
     for await (const part of result.fullStream) {
       switch (part.type) {
-        case 'text-delta':
-          if (part.textDelta) {
-            fullText += part.textDelta;
-            onToken(part.textDelta);
+        case 'text-delta': {
+          const delta = (part as any).textDelta ?? (part as any).text ?? '';
+          if (delta) {
+            fullText += delta;
+            onToken(delta);
           }
+        }
           break;
         case 'tool-call': {
           // Vercel AI SDK v6 uses 'input' instead of 'args'

@@ -1,0 +1,17 @@
+node_modules
+.git
+.claude
+*.db
+*.db-wal
+*.db-shm
+release
+out
+.env
+.env.local
+PRESEARCH.md
+PRD.md
+ARCHITECTURE.md
+STORIES.md
+CHECKLIST.md
+PIPELINE-*.md
+PIPELINE-*.json

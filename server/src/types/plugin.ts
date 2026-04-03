@@ -17,7 +17,7 @@ export const pluginManifestSchema = z.object({
   name: z.string().min(1).max(200),
   version: z.string().default('1.0.0'),
   description: z.string().optional(),
-  iframe_url: z.string().url(),
+  iframe_url: z.string(),
   icon_url: z.string().url().optional(),
   category: z.enum(['games', 'tools', 'education', 'media', 'productivity']).optional(),
   auth_type: z.enum(['none', 'api_key', 'oauth2']).default('none'),

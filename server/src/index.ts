@@ -26,7 +26,9 @@ const server = http.createServer(app);
 // Attach Socket.io with CORS configured for the frontend origin
 const io = new SocketIOServer(server, {
   cors: {
-    origin: [config.corsOrigin, `http://localhost:${config.port}`],
+    origin: (origin, callback) => {
+      callback(null, true); // Same-origin deployment; restrict if needed
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -107,8 +109,8 @@ function loadBundledPlugins(): PluginManifest[] {
 
     try {
       const raw = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-      // Rewrite iframe_url to serve from this server instead of separate ports
-      raw.iframe_url = `http://localhost:${config.port}/plugins/${entry.name}/`;
+      // Rewrite iframe_url to use relative path — frontend resolves against its own origin
+      raw.iframe_url = `/plugins/${entry.name}/`;
       const parsed = pluginManifestSchema.parse(raw);
       manifests.push(parsed);
     } catch (err) {

@@ -195,12 +195,17 @@
     }
 
     async function createSession() {
-      const data = await api('/api/chat/sessions', {
-        method: 'POST',
-        body: JSON.stringify({ title: 'New Chat' }),
-      });
-      state.sessions.unshift(data.session);
-      selectSession(data.session.id);
+      try {
+        const data = await api('/api/chat/sessions', {
+          method: 'POST',
+          body: JSON.stringify({ title: 'New Chat' }),
+        });
+        state.sessions.unshift(data.session);
+        selectSession(data.session.id);
+      } catch (err) {
+        console.error('createSession error:', err);
+        alert('Failed to create session: ' + err.message);
+      }
     }
 
     async function selectSession(id) {
