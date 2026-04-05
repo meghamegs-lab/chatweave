@@ -1,266 +1,215 @@
-<p align="right">
-  <a href="README.md">English</a> |
-  <a href="./doc/README-CN.md">简体中文</a>
-</p>
+# ChatWeave
 
-This is the repository for the Chatbox Community Edition, open-sourced under the GPLv3 license.
+**AI-Powered Learning Platform Where Educational Apps Live Inside the Chat**
 
-[Chatbox is going open-source Again!](https://github.com/chatboxai/chatbox/issues/2266)
+Students don't switch tabs — they interact with chess, math, vocabulary, financial literacy, and media literacy tools right in the conversation. The AI decides when to launch an app based on intent. An admin layer enforces platform rules and can instantly remove non-compliant apps.
 
-We regularly sync code from the pro repo to this repo, and vice versa.
-
-### Download for Desktop
-
-<table style="width: 100%">
-  <tr>
-    <td width="25%" align="center">
-      <b>Windows</b>
-    </td>
-    <td width="25%" align="center" colspan="2">
-      <b>MacOS</b>
-    </td>
-    <td width="25%" align="center">
-      <b>Linux</b>
-    </td>
-  </tr>
-  <tr style="text-align: center">
-    <td align="center" valign="middle">
-      <a href='https://chatboxai.app/?c=download-windows'>
-        <img src='./doc/statics/windows.png' style="height:24px; width: 24px" />
-        <br />
-        <b>Setup.exe</b>
-      </a>
-    </td>
-    <td align="center" valign="middle">
-      <a href='https://chatboxai.app/?c=download-mac-intel'>
-        <img src='./doc/statics/mac.png' style="height:24px; width: 24px" />
-        <br />
-        <b>Intel</b>
-      </a>
-    </td>
-    <td align="center" valign="middle">
-      <a href='https://chatboxai.app/?c=download-mac-aarch'>
-        <img src='./doc/statics/mac.png' style="height:24px; width: 24px" />
-        <br />
-        <b style="white-space: nowrap;">Apple Silicon</b>
-      </a>
-    </td>
-    <td align="center" valign="middle">
-      <a href='https://chatboxai.app/?c=download-linux'>
-        <img src='./doc/statics/linux.png' style="height:24px; width: 24px" />
-        <br />
-        <b>AppImage</b>
-      </a>
-    </td>
-  </tr>
-</table>
-
-### Download for iOS/Android
-
-<a href='https://apps.apple.com/app/chatbox-ai/id6471368056' style='margin-right: 4px'>
-<img src='./doc/statics/app_store.webp' style="height:38px;" />
-</a>
-<a href='https://play.google.com/store/apps/details?id=xyz.chatboxapp.chatbox' style='margin-right: 4px'>
-<img src='./doc/statics/google_play.png' style="height:38px;" />
-</a>
-<a href='https://chatboxai.app/install?download=android_apk' style='margin-right: 4px; display: inline-flex; justify-content: center'>
-<img src='./doc/statics/android.png' style="height:28px; display: inline-block" />
-.APK
-</a>
-
-For more information: [chatboxai.app](https://chatboxai.app/)
+**Live Demo:** [https://chatweave.up.railway.app](https://chatweave.up.railway.app)
 
 ---
-<div align="center" markdown="1">
-  <a href="https://go.warp.dev/chatbox">
-    <img alt="Warp sponsorship" width="400" src="https://raw.githubusercontent.com/warpdotdev/brand-assets/refs/heads/main/Github/Sponsor/Warp-Github-LG-02.png">
-  </a>
 
-### [Warp, built for coding with multiple AI agents.](https://go.warp.dev/chatbox)
-[Available for MacOS, Linux, & Windows](https://go.warp.dev/chatbox)<br>
-</div>
+## What We Built on Open Source
 
-<hr>
+| Inherited (ChatBridge) | Built (ChatWeave) |
+|---|---|
+| Express + JWT auth + PostgreSQL | Plugin registry, manifest validation, sandboxed iframes |
+| LLM chat streaming | Tool-calling pipeline — AI invokes plugins by intent |
+| Socket.io real-time | postMessage bridge protocol for plugin lifecycle |
+| User/session management | App Registry (submission + approval workflow) |
+| REST API routing | App Moderation (rules engine, violation tracking, instant removal) |
+| | App Discovery (kid-friendly welcome screen with 5 learning apps) |
 
-<h1 align="center">
-<img src='./doc/statics/icon.png' width='30'>
-<span>
-    Chatbox
-    <span style="font-size:8px; font-weight: normal;">(Community Edition)</span>
-</span>
-</h1>
-<p align="center">
-    <em>Your Ultimate AI Copilot on the Desktop. <br />Chatbox is a desktop client for ChatGPT, Claude and other LLMs, available on Windows, Mac, Linux</em>
-</p>
+We extended — not forked. Core chat is untouched; the plugin system layers on top.
 
-<p align="center">
-<a href="https://github.com/chatboxai/chatbox/releases" target="_blank">
-<img alt="macOS" src="https://img.shields.io/badge/-macOS-black?style=flat-square&logo=apple&logoColor=white" />
-</a>
-<a href="https://github.com/chatboxai/chatbox/releases" target="_blank">
-<img alt="Windows" src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white" />
-</a>
-<a href="https://github.com/chatboxai/chatbox/releases" target="_blank">
-<img alt="Linux" src="https://img.shields.io/badge/-Linux-yellow?style=flat-square&logo=linux&logoColor=white" />
-</a>
-<a href="https://github.com/chatboxai/chatbox/releases" target="_blank">
-<img alt="Downloads" src="https://img.shields.io/github/downloads/chatboxai/chatbox/total.svg?style=flat" />
-</a>
-</p>
+---
 
-<a href="https://www.producthunt.com/posts/chatbox?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-chatbox" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=429547&theme=light" alt="Chatbox - Better&#0032;UI&#0032;&#0038;&#0032;Desktop&#0032;App&#0032;for&#0032;ChatGPT&#0044;&#0032;Claude&#0032;and&#0032;other&#0032;LLMs&#0046; | Product Hunt" style="width: 150px; height: 30px;" width="100" height="40" /></a>
+## The 5 Learning Apps
 
-<a href="./doc/statics/snapshot_light.png">
-<img src="./doc/statics/snapshot_light.png" width="400"/>
-</a>
-<a href="./doc/statics/snapshot_dark.png">
-<img src="./doc/statics/snapshot_dark.png" width="400"/>
-</a>
+| App | Domain | Key Features |
+|-----|--------|-------------|
+| **Chess** | Logic & Strategy | AI opponent, 3 difficulty levels, FEN board state, move history, play-again |
+| **Math Quest** | STEM / Numeracy | 6 topics, adaptive difficulty, SVG manipulatives, level-up system |
+| **Word Lab** | Literacy / Language | 4 modes (spelling/vocabulary/phonics/word-building), 52+ words, mastery tracking |
+| **Money Sense** | Financial Literacy | Counting, making change, budgeting, virtual store, savings simulator |
+| **Fact or Fiction** | Media Literacy | Fake news detection, source ranking, bias spotting, debate builder |
 
-<!-- <table>
-<tr>
-<td>
-<img src="./dec/../doc/demo_mobile_1.png" alt="App Screenshot" style="box-shadow: 2px 2px 10px rgba(0,0,0,0.1); border: 1px solid #ddd; border-radius: 8px; height: 300px" />
-</td>
-<td>
-<img src="./dec/../doc/demo_mobile_2.png" alt="App Screenshot" style="box-shadow: 2px 2px 10px rgba(0,0,0,0.1); border: 1px solid #ddd; border-radius: 8px; height: 300px" />
-</td>
-</tr>
-</table> -->
+Each is a standalone React app communicating through the postMessage bridge. The AI decides which to launch based on student intent — no hardcoded triggers.
 
-## Features
+---
 
--   **Local Data Storage**  
-    :floppy_disk: Your data remains on your device, ensuring it never gets lost and maintains your privacy.
+## Architecture
 
--   **No-Deployment Installation Packages**  
-    :package: Get started quickly with downloadable installation packages. No complex setup necessary!
-
--   **Support for Multiple LLM Providers**  
-    :gear: Seamlessly integrate with a variety of cutting-edge language models:
-
-    -   OpenAI (ChatGPT)
-    -   Azure OpenAI
-    -   Claude
-    -   Google Gemini Pro
-    -   Ollama (enable access to local models like llama2, Mistral, Mixtral, codellama, vicuna, yi, and solar)
-    -   ChatGLM-6B
-
--   **Image Generation with Dall-E-3**  
-    :art: Create the images of your imagination with Dall-E-3.
-
--   **Enhanced Prompting**  
-    :speech_balloon: Advanced prompting features to refine and focus your queries for better responses.
-
--   **Keyboard Shortcuts**  
-    :keyboard: Stay productive with shortcuts that speed up your workflow.
-
--   **Markdown, Latex & Code Highlighting**  
-    :scroll: Generate messages with the full power of Markdown and Latex formatting, coupled with syntax highlighting for various programming languages, enhancing readability and presentation.
-
--   **Prompt Library & Message Quoting**  
-    :books: Save and organize prompts for reuse, and quote messages for context in discussions.
-
--   **Streaming Reply**  
-    :arrow_forward: Provide rapid responses to your interactions with immediate, progressive replies.
-
--   **Ergonomic UI & Dark Theme**  
-    :new_moon: A user-friendly interface with a night mode option for reduced eye strain during extended use.
-
--   **Team Collaboration**  
-    :busts_in_silhouette: Collaborate with ease and share OpenAI API resources among your team. [Learn More](./team-sharing/README.md)
-
--   **Cross-Platform Availability**  
-    :computer: Chatbox is ready for Windows, Mac, Linux users.
-
--   **Access Anywhere with the Web Version**  
-    :globe_with_meridians: Use the web application on any device with a browser, anywhere.
-
--   **iOS & Android**  
-    :phone: Use the mobile applications that will bring this power to your fingertips on the go.
-
--   **Multilingual Support**  
-    :earth_americas: Catering to a global audience by offering support in multiple languages:
-
-    -   English
-    -   简体中文 (Simplified Chinese)
-    -   繁體中文 (Traditional Chinese)
-    -   日本語 (Japanese)
-    -   한국어 (Korean)
-    -   Français (French)
-    -   Deutsch (German)
-    -   Русский (Russian)
-    -   Español (Spanish)
-
--   **And More...**  
-    :sparkles: Constantly enhancing the experience with new features!
-
-## FAQ
-
--   [Frequently Asked Questions](./doc/FAQ.md)
-
-## Why I made Chatbox?
-
-I developed Chatbox initially because I was debugging some prompts and found myself in need of a simple and easy-to-use prompt and API debugging tool. I thought there might be more people who needed such a tool, so I open-sourced it.
-
-At first, I didn't know that it would be so popular. I listened to the feedback from the open-source community and continued to develop and improve it. Now, it has become a very useful AI desktop application. There are many users who love Chatbox, and they not only use it for developing and debugging prompts, but also for daily chatting, and even to do some more interesting things like using well-designed prompts to make AI play various professional roles to assist them in everyday work...
-
-## How to Contribute
-
-Any form of contribution is welcome, including but not limited to:
-
--   Submitting issues
--   Submitting pull requests
--   Submitting feature requests
--   Submitting bug reports
--   Submitting documentation revisions
--   Submitting translations
--   Submitting any other forms of contribution
-
-## Prerequisites
-
-- Node.js (v20.x – v22.x)
-- npm (required – pnpm is not supported)
-
-## Build Instructions
-
-1. Clone the repository from Github
-
-```bash
-git clone https://github.com/chatboxai/chatbox.git
+```
+                 +--------------------+
+                 |   Browser / App    |
+                 | Chat UI + 5 Plugin |
+                 |    Iframes         |
+                 +--------+-----------+
+                          |
+                 Socket.io + REST API
+                          |
+                 +--------+-----------+
+                 |   Express Server   |
+                 +--+-----+-----+----+
+                    |     |     |
+           +--------+ +---+--+ +----------+
+           |PostgreSQL| | LLM  | |  Plugin  |
+           |   (Neon) | | API  | | Registry |
+           +---------+ +------+ +----+-----+
+                                      |
+                               Manifest Validation
+                               Sandbox Enforcement
+                               Rules Engine
+                               Moderation API
 ```
 
-2. Install the required dependencies
+**Three layers:** Frontend (vanilla JS chat + plugin iframes) → Backend (Express, JWT, PostgreSQL, Vercel AI SDK) → Plugin System (independent React/Vite apps in sandboxed iframes, postMessage-only communication).
 
-```bash
-npm install
+See [architecture-diagram.html](./architecture-diagram.html) for the full interactive diagram.
+
+---
+
+## Plugin System
+
+### Iframe Sandbox
+
+```
+allow-scripts       ✅  Plugin JS runs
+allow-popups        ✅  OAuth flows only
+────────────────────────────────────
+allow-top-navigation  ❌  Can't navigate parent
+allow-forms           ❌  Can't POST externally
+allow-same-origin     ❌  Can't access cookies/storage
+allow-modals          ❌  Can't show alert/confirm
 ```
 
-3. Start the application (in development mode)
+### postMessage Bridge Protocol
 
-```bash
-npm run dev
+```
+Platform → Plugin:  PLUGIN_INIT, TOOL_INVOKE, THEME_UPDATE, PLUGIN_DESTROY
+Plugin → Platform:  PLUGIN_READY, TOOL_RESULT, STATE_UPDATE, PLUGIN_COMPLETE, PLUGIN_RESIZE
 ```
 
-4. Build the application, package the installer for current platform
+Every message validated: `event.isTrusted` check, origin verification, type validation. Plugins never see auth tokens, chat history, or other plugins.
+
+### Tool-Calling Pipeline
+
+1. User message → Claude via `streamText()` with tool definitions from enabled plugins
+2. Claude returns `tool-call` → server parses namespaced tool name (`pluginId__toolName`)
+3. Server emits `plugin:invoke` via Socket.io to frontend
+4. Frontend creates sandboxed iframe → `/plugins/{pluginId}/`
+5. Plugin sends `PLUGIN_READY` → platform sends `TOOL_INVOKE`
+6. Plugin renders interactive UI, student interacts, results flow back to AI
+
+---
+
+## Admin Infrastructure
+
+### App Registry
+- Third-party developers submit plugin manifests for review
+- Admin can **approve** (plugin registered + enabled) or **reject** (with reason)
+- Nothing goes live without admin approval
+- Manifest schema validation with Zod
+
+### App Moderation
+- **8 platform rules:** Age-Appropriate Content, Data Privacy, No Ads, Educational Value, Accessibility, Performance, Sandbox Compliance, Offline Degradation
+- **Instant removal:** One-click plugin removal with violation logging
+- **Violation history:** Full audit trail with timestamps and reasons
+
+---
+
+## Security & Guardrails
+
+| Threat | Mitigation |
+|--------|------------|
+| Inappropriate content | Sandbox + admin moderation + instant removal |
+| Student data access | Sandbox blocks cookies/storage; bridge sends only tool params |
+| XSS injection | Iframe isolation + HTML escaping + origin verification |
+| Malicious manifest | Zod schema rejects invalid manifests at registration |
+| Non-compliant app | 8 platform rules + violation tracking + one-click removal |
+| Disabled plugin invoked | Filtered from tool definitions — AI never sees it |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Server | Express.js, Node.js, TypeScript |
+| Real-time | Socket.io |
+| Database | PostgreSQL (Neon, connection pooling, max 20) |
+| Auth | JWT + bcrypt (12 rounds) |
+| LLM | Vercel AI SDK v6 (Claude Sonnet) |
+| Plugin Apps | React 18 + Vite (5 independent apps) |
+| Plugin Comm | postMessage bridge (iframe sandbox) |
+| Validation | Zod schemas (all server inputs) |
+| Deployment | Railway |
+
+---
+
+## Running Locally
 
 ```bash
-npm run package
+# Clone and install
+git clone https://github.com/meghamegs-lab/chatweave.git
+cd chatweave && pnpm install
+
+# Build all plugins
+for dir in plugins/chess plugins/math-quest plugins/word-lab plugins/money-sense plugins/fact-or-fiction; do
+  cd $dir && npm install && npm run build && cd ../..
+done
+
+# Configure server
+cp server/.env.example server/.env
+# Edit with your API keys, JWT secrets, and DATABASE_URL
+
+# Start
+cd server && pnpm dev
+
+# Open http://localhost:3001
+# Register → New Chat → Click any learning app or type "I want to practice math!"
 ```
 
-5. Build the application, package the installer for all platforms
+---
+
+## Deployment
+
+Deployed on [Railway](https://railway.app):
 
 ```bash
-npm run package:all
+railway login
+railway link    # Link to your project
+railway up      # Deploy
 ```
 
-## Star History
+**Live URL:** [https://chatweave.up.railway.app](https://chatweave.up.railway.app)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=chatboxai/chatbox&type=Date)](https://star-history.com/#chatboxai/chatbox&Date)
+---
 
-## Contact
+## Project Structure
 
-[Twitter](https://x.com/ChatboxAI_HQ) | [Email](mailto:hi@chatboxai.com)
+```
+chatweave/
+├── server/                    # Express backend
+│   ├── src/
+│   │   ├── db/                # PostgreSQL schema + queries
+│   │   ├── routes/            # Auth, chat, plugins, moderation
+│   │   ├── services/          # LLM, socket, plugin registry
+│   │   └── types/             # Zod schemas
+│   └── public/                # Web chat UI (vanilla JS)
+├── plugins/
+│   ├── chess/                 # Chess learning game
+│   ├── math-quest/            # Math practice
+│   ├── word-lab/              # Vocabulary & spelling
+│   ├── money-sense/           # Financial literacy
+│   ├── fact-or-fiction/        # Media literacy
+│   └── sdk/                   # Plugin SDK (postMessage bridge)
+├── src/renderer/              # Electron React frontend (optional)
+├── architecture-diagram.html  # Interactive architecture diagram
+├── COST-ANALYSIS.md           # Infrastructure cost projections
+├── GOLDEN-EVALS.md            # Test evaluation suite
+└── DEMO-SCRIPT.md             # Demo walkthrough
+```
 
 ## License
 
