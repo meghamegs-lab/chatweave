@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { getDatabase } from '../db';
+import { query, queryAll } from '../db';
 import { pluginManifestSchema, PluginManifest, PluginTool } from '../types/plugin';
 import { AppError } from '../middleware/errorHandler';
 
@@ -16,10 +16,8 @@ export class PluginRegistry {
    * Load all plugins from the database into memory.
    * Should be called once during server startup after DB is initialized.
    */
-  loadFromDatabase(): void {
-    const db = getDatabase();
-
-    const rows = db.prepare('SELECT * FROM plugins').all() as Array<{
+  async loadFromDatabase(): Promise<void> {
+    const rows = await queryAll<{
       id: string;
       name: string;
       version: string;
@@ -29,16 +27,16 @@ export class PluginRegistry {
       category: string | null;
       auth_type: string;
       manifest: string;
-      is_enabled: number;
+      is_enabled: boolean;
       created_at: string;
       updated_at: string;
-    }>;
+    }>('SELECT * FROM plugins');
 
     for (const row of rows) {
       const manifest = JSON.parse(row.manifest) as PluginManifest;
       this.plugins.set(row.id, {
         ...manifest,
-        is_enabled: row.is_enabled === 1,
+        is_enabled: row.is_enabled,
         created_at: row.created_at,
         updated_at: row.updated_at,
       });
@@ -51,7 +49,7 @@ export class PluginRegistry {
    * Register a new plugin from a manifest. Validates with Zod, saves to DB and cache.
    * Throws AppError(409) if a plugin with the same ID already exists.
    */
-  register(rawManifest: unknown): Plugin {
+  async register(rawManifest: unknown): Promise<Plugin> {
     const parsed = pluginManifestSchema.safeParse(rawManifest);
     if (!parsed.success) {
       throw new AppError(
@@ -71,14 +69,13 @@ export class PluginRegistry {
       );
     }
 
-    const db = getDatabase();
     const now = new Date().toISOString();
 
     // Insert plugin row
-    db.prepare(`
+    await query(`
       INSERT INTO plugins (id, name, version, description, iframe_url, icon_url, category, auth_type, manifest, is_enabled, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
-    `).run(
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, $10, $11)
+    `, [
       manifest.id,
       manifest.name,
       manifest.version,
@@ -90,22 +87,20 @@ export class PluginRegistry {
       JSON.stringify(manifest),
       now,
       now
-    );
+    ]);
 
     // Insert tools
-    const insertTool = db.prepare(`
-      INSERT INTO plugin_tools (id, plugin_id, name, description, parameters)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
     for (const tool of manifest.tools) {
-      insertTool.run(
+      await query(`
+        INSERT INTO plugin_tools (id, plugin_id, name, description, parameters)
+        VALUES ($1, $2, $3, $4, $5)
+      `, [
         uuidv4(),
         manifest.id,
         tool.name,
         tool.description,
         JSON.stringify(tool.parameters)
-      );
+      ]);
     }
 
     const plugin: Plugin = {
@@ -160,15 +155,14 @@ export class PluginRegistry {
   /**
    * Enable a plugin by ID.
    */
-  enable(id: string): void {
+  async enable(id: string): Promise<void> {
     const plugin = this.plugins.get(id);
     if (!plugin) {
       throw new AppError(`Plugin "${id}" not found`, 404, 'PLUGIN_NOT_FOUND');
     }
 
-    const db = getDatabase();
-    db.prepare('UPDATE plugins SET is_enabled = 1, updated_at = ? WHERE id = ?')
-      .run(new Date().toISOString(), id);
+    await query('UPDATE plugins SET is_enabled = TRUE, updated_at = $1 WHERE id = $2',
+      [new Date().toISOString(), id]);
 
     plugin.is_enabled = true;
     console.log(`[PluginRegistry] Enabled plugin: ${id}`);
@@ -177,15 +171,14 @@ export class PluginRegistry {
   /**
    * Disable a plugin by ID.
    */
-  disable(id: string): void {
+  async disable(id: string): Promise<void> {
     const plugin = this.plugins.get(id);
     if (!plugin) {
       throw new AppError(`Plugin "${id}" not found`, 404, 'PLUGIN_NOT_FOUND');
     }
 
-    const db = getDatabase();
-    db.prepare('UPDATE plugins SET is_enabled = 0, updated_at = ? WHERE id = ?')
-      .run(new Date().toISOString(), id);
+    await query('UPDATE plugins SET is_enabled = FALSE, updated_at = $1 WHERE id = $2',
+      [new Date().toISOString(), id]);
 
     plugin.is_enabled = false;
     console.log(`[PluginRegistry] Disabled plugin: ${id}`);
@@ -194,7 +187,7 @@ export class PluginRegistry {
   /**
    * Update a plugin's manifest. Re-validates, updates DB and cache.
    */
-  update(id: string, rawManifest: unknown): Plugin {
+  async update(id: string, rawManifest: unknown): Promise<Plugin> {
     const existing = this.plugins.get(id);
     if (!existing) {
       throw new AppError(`Plugin "${id}" not found`, 404, 'PLUGIN_NOT_FOUND');
@@ -220,15 +213,14 @@ export class PluginRegistry {
       );
     }
 
-    const db = getDatabase();
     const now = new Date().toISOString();
 
     // Update plugin row
-    db.prepare(`
+    await query(`
       UPDATE plugins
-      SET name = ?, version = ?, description = ?, iframe_url = ?, icon_url = ?, category = ?, auth_type = ?, manifest = ?, updated_at = ?
-      WHERE id = ?
-    `).run(
+      SET name = $1, version = $2, description = $3, iframe_url = $4, icon_url = $5, category = $6, auth_type = $7, manifest = $8, updated_at = $9
+      WHERE id = $10
+    `, [
       manifest.name,
       manifest.version,
       manifest.description ?? null,
@@ -239,24 +231,22 @@ export class PluginRegistry {
       JSON.stringify(manifest),
       now,
       id
-    );
+    ]);
 
     // Replace tools: delete old, insert new
-    db.prepare('DELETE FROM plugin_tools WHERE plugin_id = ?').run(id);
-
-    const insertTool = db.prepare(`
-      INSERT INTO plugin_tools (id, plugin_id, name, description, parameters)
-      VALUES (?, ?, ?, ?, ?)
-    `);
+    await query('DELETE FROM plugin_tools WHERE plugin_id = $1', [id]);
 
     for (const tool of manifest.tools) {
-      insertTool.run(
+      await query(`
+        INSERT INTO plugin_tools (id, plugin_id, name, description, parameters)
+        VALUES ($1, $2, $3, $4, $5)
+      `, [
         uuidv4(),
         id,
         tool.name,
         tool.description,
         JSON.stringify(tool.parameters)
-      );
+      ]);
     }
 
     const plugin: Plugin = {
@@ -275,15 +265,14 @@ export class PluginRegistry {
   /**
    * Remove a plugin by ID. Deletes from DB and cache.
    */
-  remove(id: string): void {
+  async remove(id: string): Promise<void> {
     const plugin = this.plugins.get(id);
     if (!plugin) {
       throw new AppError(`Plugin "${id}" not found`, 404, 'PLUGIN_NOT_FOUND');
     }
 
-    const db = getDatabase();
     // plugin_tools will cascade-delete thanks to FK
-    db.prepare('DELETE FROM plugins WHERE id = ?').run(id);
+    await query('DELETE FROM plugins WHERE id = $1', [id]);
 
     this.plugins.delete(id);
     console.log(`[PluginRegistry] Removed plugin: ${id}`);
@@ -293,7 +282,7 @@ export class PluginRegistry {
    * Register bundled plugins if they don't already exist in the database.
    * Skips plugins that are already registered (idempotent).
    */
-  registerBundled(manifests: PluginManifest[]): void {
+  async registerBundled(manifests: PluginManifest[]): Promise<void> {
     let registered = 0;
     let skipped = 0;
 
@@ -304,7 +293,7 @@ export class PluginRegistry {
       }
 
       try {
-        this.register(manifest);
+        await this.register(manifest);
         registered++;
       } catch (err) {
         console.error(`[PluginRegistry] Failed to register bundled plugin "${manifest.id}":`, err);

@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { getDatabase } from '../db';
+import { query, queryOne, queryAll } from '../db';
 import { authMiddleware } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 import { pluginRegistry } from '../services/pluginRegistry';
@@ -11,16 +11,16 @@ const router = Router();
 router.use(authMiddleware);
 
 // GET /api/oauth/status - Get OAuth connection status for all plugins
-router.get('/status', (req: Request, res: Response, next: NextFunction) => {
+router.get('/status', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const db = getDatabase();
-    const tokens = db.prepare(
-      'SELECT plugin_id, created_at, updated_at FROM oauth_tokens WHERE user_id = ?'
-    ).all(req.user!.userId) as Array<{
+    const tokens = await queryAll<{
       plugin_id: string;
       created_at: string;
       updated_at: string;
-    }>;
+    }>(
+      'SELECT plugin_id, created_at, updated_at FROM oauth_tokens WHERE user_id = $1',
+      [req.user!.userId]
+    );
 
     const connections = tokens.map(t => ({
       pluginId: t.plugin_id,
@@ -35,7 +35,7 @@ router.get('/status', (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/oauth/:pluginId/authorize - Start OAuth flow
-router.get('/:pluginId/authorize', (req: Request, res: Response, next: NextFunction) => {
+router.get('/:pluginId/authorize', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pluginId = req.params.pluginId as string;
     const plugin = pluginRegistry.getById(pluginId);
@@ -49,13 +49,17 @@ router.get('/:pluginId/authorize', (req: Request, res: Response, next: NextFunct
     }
 
     const state = uuidv4();
-    const db = getDatabase();
 
     // Store state for CSRF protection
-    db.prepare(`
-      INSERT OR REPLACE INTO oauth_tokens (id, user_id, plugin_id, access_token, refresh_token, expires_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    await query(`
+      INSERT INTO oauth_tokens (id, user_id, plugin_id, access_token, refresh_token, expires_at, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      ON CONFLICT (user_id, plugin_id) DO UPDATE SET
+        access_token = EXCLUDED.access_token,
+        refresh_token = EXCLUDED.refresh_token,
+        expires_at = EXCLUDED.expires_at,
+        updated_at = EXCLUDED.updated_at
+    `, [
       uuidv4(),
       req.user!.userId,
       pluginId,
@@ -64,7 +68,7 @@ router.get('/:pluginId/authorize', (req: Request, res: Response, next: NextFunct
       null,
       new Date().toISOString(),
       new Date().toISOString()
-    );
+    ]);
 
     const authUrl = new URL(plugin.oauth_config.auth_url);
     authUrl.searchParams.set('client_id', plugin.oauth_config.client_id);
@@ -95,21 +99,20 @@ router.get('/:pluginId/callback', async (req: Request, res: Response, next: Next
     }
 
     // Exchange code for token (simplified — in production, would use plugin's token_url)
-    const db = getDatabase();
     const now = new Date().toISOString();
 
-    db.prepare(`
+    await query(`
       UPDATE oauth_tokens
-      SET access_token = ?, refresh_token = ?, expires_at = ?, updated_at = ?
-      WHERE user_id = ? AND plugin_id = ?
-    `).run(
+      SET access_token = $1, refresh_token = $2, expires_at = $3, updated_at = $4
+      WHERE user_id = $5 AND plugin_id = $6
+    `, [
       `mock_access_token_${pluginId}_${Date.now()}`,
       `mock_refresh_token_${pluginId}_${Date.now()}`,
       new Date(Date.now() + 3600 * 1000).toISOString(),
       now,
       req.user!.userId,
       pluginId
-    );
+    ]);
 
     // Return HTML that closes the popup
     res.send(`
@@ -127,13 +130,12 @@ router.get('/:pluginId/callback', async (req: Request, res: Response, next: Next
 });
 
 // DELETE /api/oauth/:pluginId - Disconnect OAuth
-router.delete('/:pluginId', (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:pluginId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pluginId = req.params.pluginId as string;
-    const db = getDatabase();
 
-    db.prepare('DELETE FROM oauth_tokens WHERE user_id = ? AND plugin_id = ?')
-      .run(req.user!.userId, pluginId);
+    await query('DELETE FROM oauth_tokens WHERE user_id = $1 AND plugin_id = $2',
+      [req.user!.userId, pluginId]);
 
     res.json({ success: true });
   } catch (err) {

@@ -13,6 +13,7 @@ import chatRouter from './routes/chat';
 import { pluginRouter } from './routes/plugins';
 import { proxyRouter } from './routes/proxy';
 import { oauthRouter } from './routes/oauth';
+import { moderationRouter } from './routes/moderation';
 import { pluginRegistry } from './services/pluginRegistry';
 import { initializeSocketService } from './services/socketService';
 import { pluginManifestSchema, PluginManifest } from './types/plugin';
@@ -61,6 +62,9 @@ app.use('/api/proxy', proxyRouter);
 
 // OAuth routes (plugin auth flows)
 app.use('/api/oauth', oauthRouter);
+
+// Moderation routes (plugin rules, violations, submissions)
+app.use('/api/moderation', moderationRouter);
 
 // --- Serve web chat UI ---
 app.use(express.static(path.resolve(__dirname, '..', 'public')));
@@ -121,21 +125,21 @@ function loadBundledPlugins(): PluginManifest[] {
   return manifests;
 }
 
-function startup(): void {
+async function startup(): Promise<void> {
   try {
-    // Initialize SQLite database (creates tables on first run)
-    initializeDatabase();
+    // Initialize PostgreSQL database (creates tables on first run)
+    await initializeDatabase();
 
     // Load plugin registry from database, then register bundled plugins
-    pluginRegistry.loadFromDatabase();
+    await pluginRegistry.loadFromDatabase();
     const bundledManifests = loadBundledPlugins();
     if (bundledManifests.length > 0) {
-      pluginRegistry.registerBundled(bundledManifests);
+      await pluginRegistry.registerBundled(bundledManifests);
     }
 
     // Start listening
     server.listen(config.port, () => {
-      console.log(`[Server] ChatBridge backend running on port ${config.port}`);
+      console.log(`[Server] ChatWeave backend running on port ${config.port}`);
       console.log(`[Server] Environment: ${config.nodeEnv}`);
       console.log(`[Server] CORS origin: ${config.corsOrigin}`);
       console.log(`[Server] Health check: http://localhost:${config.port}/api/health`);
@@ -150,9 +154,9 @@ function startup(): void {
 function shutdown(signal: string): void {
   console.log(`\n[Server] Received ${signal}. Shutting down gracefully...`);
 
-  server.close(() => {
+  server.close(async () => {
     console.log('[Server] HTTP server closed');
-    closeDatabase();
+    await closeDatabase();
     process.exit(0);
   });
 

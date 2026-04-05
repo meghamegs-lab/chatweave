@@ -1,6 +1,7 @@
 import { ActionIcon, Box, Flex, Indicator, Stack, Text } from '@mantine/core'
 import {
   IconAdjustmentsHorizontal,
+  IconAppWindow,
   IconBook,
   IconBox,
   IconCategory,
@@ -12,6 +13,7 @@ import {
   IconKeyboard,
   IconMessages,
   IconPuzzle,
+  IconShield,
   IconSparkles,
   IconWorldWww,
 } from '@tabler/icons-react'
@@ -70,6 +72,16 @@ const ITEMS = [
     key: 'plugins',
     label: 'Plugins',
     icon: <IconPuzzle className="w-full h-full" />,
+  },
+  {
+    key: 'app-registry',
+    label: 'App Registry',
+    icon: <IconAppWindow className="w-full h-full" />,
+  },
+  {
+    key: 'app-moderation',
+    label: 'App Moderation',
+    icon: <IconShield className="w-full h-full" />,
   },
   {
     key: 'document-parser',

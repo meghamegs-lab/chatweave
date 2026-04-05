@@ -1,0 +1,35 @@
+{
+  "id": "math-quest",
+  "name": "Math Quest Adventure",
+  "version": "1.0.0",
+  "description": "Interactive math learning game with adaptive difficulty, visual manipulatives, and gamified progression for K-8 students",
+  "iframe_url": "http://localhost:3001/plugins/math-quest/",
+  "category": "education",
+  "auth_type": "none",
+  "tools": [
+    {
+      "name": "start_math_quest",
+      "description": "Start a new math quest session with the specified topic and difficulty level.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "topic": { "type": "string", "enum": ["addition", "subtraction", "multiplication", "division", "fractions", "geometry"], "description": "Math topic to practice" },
+          "difficulty": { "type": "string", "enum": ["beginner", "intermediate", "advanced"], "description": "Difficulty level" }
+        }
+      }
+    },
+    {
+      "name": "get_quest_progress",
+      "description": "Get the student's current progress including score, streak, and level.",
+      "parameters": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "get_hint",
+      "description": "Get a hint for the current math problem.",
+      "parameters": { "type": "object", "properties": {} }
+    }
+  ],
+  "completion_events": ["quest_completed", "level_up"],
+  "sandbox": { "permissions": ["allow-scripts"] },
+  "ui": { "default_height": 500, "max_height": 650, "resizable": false }
+}

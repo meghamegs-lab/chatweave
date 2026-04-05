@@ -9,7 +9,7 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   jwtSecret: process.env.JWT_SECRET || 'dev-jwt-secret-change-in-production',
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-jwt-refresh-secret-change-in-production',
-  databaseUrl: process.env.DATABASE_URL || 'file:./chatbridge.db',
+  databaseUrl: process.env.DATABASE_URL || 'postgresql://localhost:5432/chatweave',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:1212',
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',

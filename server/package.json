@@ -1,7 +1,7 @@
 {
   "name": "chatbridge-server",
   "version": "1.0.0",
-  "description": "ChatBridge backend server with Express.js, Socket.io, and SQLite",
+  "description": "ChatBridge backend server with Express.js, Socket.io, and PostgreSQL",
   "private": true,
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
@@ -13,7 +13,7 @@
     "@ai-sdk/openai": "^3.0.25",
     "ai": "^6.0.67",
     "bcrypt": "^5.1.1",
-    "better-sqlite3": "^11.7.0",
+    "pg": "^8.13.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -24,11 +24,11 @@
     "zod": "^3.24.2"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["bcrypt", "better-sqlite3", "esbuild"]
+    "onlyBuiltDependencies": ["bcrypt", "esbuild"]
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/better-sqlite3": "^7.6.12",
+    "@types/pg": "^8.11.10",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",

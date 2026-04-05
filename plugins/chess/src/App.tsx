@@ -392,6 +392,40 @@ export default function App() {
         Playing as {gameState.playerColor} · {gameState.difficulty} difficulty ·{' '}
         {gameState.game.history().length} moves
       </div>
+
+      {gameState.gameOver && (
+        <button
+          onClick={() => {
+            const game = new Chess();
+            const newState: GameState = {
+              game,
+              playerColor: gameState.playerColor,
+              difficulty: gameState.difficulty,
+              gameOver: false,
+              result: null,
+              startTime: Date.now(),
+            };
+            setGameState(newState);
+            gameRef.current = newState;
+            if (gameState.playerColor === 'black') {
+              setTimeout(() => makeAIMove(newState), 500);
+            }
+          }}
+          style={{
+            padding: '10px 24px',
+            fontSize: '15px',
+            fontWeight: 600,
+            background: '#4263eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            marginTop: '4px',
+          }}
+        >
+          Play Again
+        </button>
+      )}
     </div>
   );
 }

@@ -1,12 +1,12 @@
 {
-  "name": "chatbridge-weather-plugin",
+  "name": "chatbridge-money-sense-plugin",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3101",
+    "dev": "vite --port 3103",
     "build": "vite build",
-    "preview": "vite preview --port 3101"
+    "preview": "vite preview --port 3103"
   },
   "dependencies": {
     "react": "^18.3.1",

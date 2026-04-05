@@ -1,0 +1,35 @@
+{
+  "id": "fact-or-fiction",
+  "name": "Fact or Fiction",
+  "version": "1.0.0",
+  "description": "Media literacy and critical thinking game teaching middle schoolers to evaluate sources, spot bias, and identify misinformation",
+  "iframe_url": "http://localhost:3001/plugins/fact-or-fiction/",
+  "category": "education",
+  "auth_type": "none",
+  "tools": [
+    {
+      "name": "start_challenge",
+      "description": "Start a new fact or fiction challenge with the specified mode and difficulty.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "mode": { "type": "string", "enum": ["fake-news", "source-check", "bias-spotter", "ad-detective", "debate-builder"], "description": "Challenge mode" },
+          "difficulty": { "type": "string", "enum": ["beginner", "intermediate", "advanced"], "description": "Difficulty level" }
+        }
+      }
+    },
+    {
+      "name": "get_challenge_progress",
+      "description": "Get the student's media literacy progress and critical thinking score.",
+      "parameters": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "get_analysis_tip",
+      "description": "Get a tip on how to analyze the current piece of content.",
+      "parameters": { "type": "object", "properties": {} }
+    }
+  ],
+  "completion_events": ["challenge_completed", "skill_unlocked"],
+  "sandbox": { "permissions": ["allow-scripts"] },
+  "ui": { "default_height": 520, "max_height": 700, "resizable": true }
+}

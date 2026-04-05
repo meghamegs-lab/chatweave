@@ -1,0 +1,35 @@
+{
+  "id": "word-lab",
+  "name": "Spell & Learn Word Lab",
+  "version": "1.0.0",
+  "description": "Interactive vocabulary and spelling game with phonics, contextual clues, and drag-and-drop letter tiles for K-8 students",
+  "iframe_url": "http://localhost:3001/plugins/word-lab/",
+  "category": "education",
+  "auth_type": "none",
+  "tools": [
+    {
+      "name": "start_word_challenge",
+      "description": "Start a new word challenge session with the specified mode and difficulty.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "mode": { "type": "string", "enum": ["spelling", "vocabulary", "phonics", "word-building"], "description": "Game mode" },
+          "difficulty": { "type": "string", "enum": ["beginner", "intermediate", "advanced"], "description": "Difficulty level" }
+        }
+      }
+    },
+    {
+      "name": "get_word_progress",
+      "description": "Get the student's current word mastery progress and statistics.",
+      "parameters": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "get_word_hint",
+      "description": "Get a hint for the current word challenge.",
+      "parameters": { "type": "object", "properties": {} }
+    }
+  ],
+  "completion_events": ["challenge_completed", "word_mastered"],
+  "sandbox": { "permissions": ["allow-scripts"] },
+  "ui": { "default_height": 500, "max_height": 650, "resizable": false }
+}

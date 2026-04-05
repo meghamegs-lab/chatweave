@@ -15,6 +15,7 @@ import { MessageLayoutSelector } from '@/components/common/MessageLayoutPreview'
 import { ScalableIcon } from '@/components/common/ScalableIcon'
 import { ImageInStorage } from '@/components/Image'
 import InputBox, { type InputBoxPayload } from '@/components/InputBox/InputBox'
+import AppDiscovery from '@/components/AppDiscovery'
 import HomepageIcon from '@/components/icons/HomepageIcon'
 import Page from '@/components/layout/Page'
 import { useMyCopilots, useRemoteCopilotsByCursor } from '@/hooks/useCopilots'
@@ -230,11 +231,17 @@ function Index() {
     <Page title="">
       <div className="p-0 flex flex-col h-full">
         {messageLayout || welcomeCardMode !== 'none' ? (
-          <Stack align="center" justify="center" gap="sm" flex={1}>
+          <Stack align="center" gap="md" flex={1} justify="center" className="overflow-y-auto" p="md">
             <HomepageIcon className="h-8" />
-            <Text fw="600" size={isSmallScreen ? 'sm' : 'md'}>
-              {t('What can I help you with today?')}
+            <Text fw="700" size={isSmallScreen ? 'md' : 'lg'} ta="center">
+              Welcome to ChatWeave!
             </Text>
+            <Text size="sm" c="chatbox-tertiary" ta="center" maw={500}>
+              Your AI learning buddy. Pick an app below or just ask me anything!
+            </Text>
+            <Box w="100%" maw={700} mt="sm">
+              <AppDiscovery />
+            </Box>
           </Stack>
         ) : (
           <Stack align="center" justify="center" gap="sm" flex={1} p="sm">

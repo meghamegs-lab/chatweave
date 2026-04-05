@@ -45,9 +45,9 @@ router.get('/:id', (req: Request, res: Response, next: NextFunction) => {
  * POST /api/plugins/register
  * Register a new plugin by providing its manifest.
  */
-router.post('/register', (req: Request, res: Response, next: NextFunction) => {
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const plugin = pluginRegistry.register(req.body);
+    const plugin = await pluginRegistry.register(req.body);
     res.status(201).json({ plugin });
   } catch (err) {
     next(err);
@@ -58,10 +58,10 @@ router.post('/register', (req: Request, res: Response, next: NextFunction) => {
  * PUT /api/plugins/:id
  * Update an existing plugin's manifest.
  */
-router.put('/:id', (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdParam(req);
-    const plugin = pluginRegistry.update(id, req.body);
+    const plugin = await pluginRegistry.update(id, req.body);
     res.json({ plugin });
   } catch (err) {
     next(err);
@@ -72,10 +72,10 @@ router.put('/:id', (req: Request, res: Response, next: NextFunction) => {
  * DELETE /api/plugins/:id
  * Remove a plugin.
  */
-router.delete('/:id', (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdParam(req);
-    pluginRegistry.remove(id);
+    await pluginRegistry.remove(id);
     res.status(204).send();
   } catch (err) {
     next(err);
@@ -86,10 +86,10 @@ router.delete('/:id', (req: Request, res: Response, next: NextFunction) => {
  * POST /api/plugins/:id/enable
  * Enable a plugin.
  */
-router.post('/:id/enable', (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/enable', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdParam(req);
-    pluginRegistry.enable(id);
+    await pluginRegistry.enable(id);
     const plugin = pluginRegistry.getById(id);
     res.json({ plugin });
   } catch (err) {
@@ -101,10 +101,10 @@ router.post('/:id/enable', (req: Request, res: Response, next: NextFunction) => 
  * POST /api/plugins/:id/disable
  * Disable a plugin.
  */
-router.post('/:id/disable', (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/disable', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdParam(req);
-    pluginRegistry.disable(id);
+    await pluginRegistry.disable(id);
     const plugin = pluginRegistry.getById(id);
     res.json({ plugin });
   } catch (err) {

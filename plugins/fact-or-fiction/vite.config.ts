@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+
 export default defineConfig({
   plugins: [react()],
-  base: '/plugins/weather/',
-  server: { port: 3101 },
+  base: '/plugins/fact-or-fiction/',
+  server: { port: 3104 },
 });

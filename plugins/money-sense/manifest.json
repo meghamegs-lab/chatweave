@@ -1,0 +1,35 @@
+{
+  "id": "money-sense",
+  "name": "Money Sense",
+  "version": "1.0.0",
+  "description": "Interactive financial literacy game teaching kids money counting, budgeting, savings goals, and smart spending decisions",
+  "iframe_url": "http://localhost:3001/plugins/money-sense/",
+  "category": "education",
+  "auth_type": "none",
+  "tools": [
+    {
+      "name": "start_money_lesson",
+      "description": "Start a new money sense lesson with the specified activity and difficulty.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "activity": { "type": "string", "enum": ["counting", "making-change", "budgeting", "shopping", "saving"], "description": "Activity type" },
+          "difficulty": { "type": "string", "enum": ["beginner", "intermediate", "advanced"], "description": "Difficulty level" }
+        }
+      }
+    },
+    {
+      "name": "get_money_progress",
+      "description": "Get the student's financial literacy progress and achievements.",
+      "parameters": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "get_money_tip",
+      "description": "Get a helpful money tip or hint for the current activity.",
+      "parameters": { "type": "object", "properties": {} }
+    }
+  ],
+  "completion_events": ["lesson_completed", "achievement_unlocked"],
+  "sandbox": { "permissions": ["allow-scripts"] },
+  "ui": { "default_height": 520, "max_height": 680, "resizable": false }
+}

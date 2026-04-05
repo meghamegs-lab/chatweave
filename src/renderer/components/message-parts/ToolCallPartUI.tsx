@@ -14,18 +14,24 @@ import {
   IconFileMinus,
   IconFileSearch,
   IconLoader,
+  IconPuzzle,
   IconTerminal,
   IconWorld,
   IconX,
 } from '@tabler/icons-react'
 import clsx from 'clsx'
-import { type FC, useCallback, useRef, useState } from 'react'
+import { type FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { formatElapsedTime, useThinkingTimer } from '@/hooks/useThinkingTimer'
 import { getToolName } from '@/packages/tools'
+import { pluginBridge } from '@/packages/plugin-bridge'
 import type { SearchResultItem } from '@/packages/web-search'
+import { useUIStore } from '@/stores/uiStore'
 import { ScalableIcon } from '../common/ScalableIcon'
+import PluginFrame from '../PluginFrame/PluginFrame'
+import PluginCard from '../PluginFrame/PluginCard'
+import { PluginLoading } from '../PluginFrame/PluginLoadingState'
 
 // ─── Tool Icon Mapping ──────────────────────────────────────────────
 
@@ -411,14 +417,128 @@ const GeneralToolCallUI: FC<{ part: MessageToolCallPart }> = ({ part }) => {
   )
 }
 
+// ─── Plugin Tool Call (iframe) ─────────────────────────────────────
+
+const isPluginToolCall = (toolName: string): boolean => toolName.includes('__')
+
+const parsePluginToolName = (namespacedName: string) => {
+  const idx = namespacedName.indexOf('__')
+  return {
+    pluginId: namespacedName.substring(0, idx),
+    toolName: namespacedName.substring(idx + 2),
+  }
+}
+
+const PluginToolCallUI: FC<{ part: MessageToolCallPart; sessionId: string }> = ({ part, sessionId }) => {
+  const [pluginData, setPluginData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [completed, setCompleted] = useState(false)
+  const [completionSummary, setCompletionSummary] = useState('')
+  const realTheme = useUIStore((state) => state.realTheme)
+
+  const { pluginId, toolName: actualToolName } = useMemo(
+    () => parsePluginToolName(part.toolName),
+    [part.toolName]
+  )
+
+  const instanceId = useMemo(() => `${pluginId}-${part.toolCallId}`, [pluginId, part.toolCallId])
+
+  useEffect(() => {
+    fetch(`http://localhost:3001/api/plugins/${pluginId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.plugin) {
+          setPluginData(data.plugin)
+        } else {
+          setFetchError(`Plugin "${pluginId}" not found`)
+        }
+        setLoading(false)
+      })
+      .catch((err) => {
+        setFetchError(err.message)
+        setLoading(false)
+      })
+  }, [pluginId])
+
+  const handleReady = useCallback(() => {
+    if (part.args) {
+      pluginBridge.invokeTool(pluginId, actualToolName, part.args as Record<string, unknown>)
+    }
+  }, [pluginId, actualToolName, part.args])
+
+  const handleComplete = useCallback(
+    (_event: string, _data: Record<string, unknown>, summary: string) => {
+      setCompleted(true)
+      setCompletionSummary(summary || 'Activity completed!')
+    },
+    []
+  )
+
+  if (loading) {
+    return (
+      <Box my="xs">
+        <PluginLoading pluginName={pluginId} />
+      </Box>
+    )
+  }
+
+  if (fetchError || !pluginData) {
+    return <GeneralToolCallUI part={part} />
+  }
+
+  if (completed) {
+    return (
+      <PluginCard
+        pluginName={pluginData.name || pluginId}
+        completionSummary={completionSummary}
+        completionData={{}}
+      />
+    )
+  }
+
+  const iframeUrl = pluginData.iframe_url?.startsWith('http')
+    ? pluginData.iframe_url
+    : `http://localhost:3001${pluginData.iframe_url}`
+
+  return (
+    <Box my="xs">
+      <Group gap={6} mb={6}>
+        <IconPuzzle size={14} color="var(--chatbox-tint-brand)" />
+        <Text size="xs" fw={600} c="chatbox-secondary">
+          {pluginData.name || pluginId}
+        </Text>
+        {part.state === 'call' && (
+          <IconLoader size={11} className="animate-spin" color="var(--chatbox-tint-brand)" />
+        )}
+      </Group>
+      <PluginFrame
+        instanceId={instanceId}
+        pluginId={pluginId}
+        pluginName={pluginData.name || pluginId}
+        iframeUrl={iframeUrl}
+        defaultHeight={pluginData.ui?.default_height || 500}
+        maxHeight={pluginData.ui?.max_height || 650}
+        sessionId={sessionId}
+        theme={realTheme}
+        onReady={handleReady}
+        onComplete={handleComplete}
+      />
+    </Box>
+  )
+}
+
 // ─── Entry Point ────────────────────────────────────────────────────
 
-export const ToolCallPartUI: FC<{ part: MessageToolCallPart }> = ({ part }) => {
+export const ToolCallPartUI: FC<{ part: MessageToolCallPart; sessionId?: string }> = ({ part, sessionId }) => {
   if (part.toolName === 'web_search') {
     return <WebSearchGroupUI parts={[part]} />
   }
   if (part.toolName === 'parse_link') {
     return <ParseLinkUI part={part} />
+  }
+  if (isPluginToolCall(part.toolName) && sessionId) {
+    return <PluginToolCallUI part={part} sessionId={sessionId} />
   }
   return <GeneralToolCallUI part={part} />
 }

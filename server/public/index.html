@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChatBridge</title>
+  <title>ChatWeave</title>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <style>
     :root {
@@ -85,9 +85,19 @@
     .input-area button:hover { background: var(--primary-hover); }
     .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); gap: 8px; text-align: center; width: 100%; }
-    .empty-state h3 { font-size: 20px; color: var(--text); }
+    .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); gap: 8px; text-align: center; width: 100%; overflow-y: auto; padding: 24px; }
+    .empty-state h3 { font-size: 24px; color: var(--text); font-weight: 700; }
     .empty-state p { font-size: 14px; }
+
+    /* App Discovery Grid */
+    .app-discovery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; width: 100%; max-width: 740px; margin-top: 20px; }
+    .app-card { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-card); cursor: pointer; text-align: left; transition: transform 0.15s, box-shadow 0.15s; }
+    .app-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px var(--shadow); }
+    .app-card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .app-card-info { min-width: 0; }
+    .app-card-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .app-card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .app-card-try { font-size: 11px; color: var(--primary); margin-top: 6px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -201,7 +211,7 @@
           body: JSON.stringify({ title: 'New Chat' }),
         });
         state.sessions.unshift(data.session);
-        selectSession(data.session.id);
+        await selectSession(data.session.id);
       } catch (err) {
         console.error('createSession error:', err);
         alert('Failed to create session: ' + err.message);
@@ -334,7 +344,7 @@
       if (!area) return;
       const wasValue = document.getElementById('chat-input')?.value || '';
       area.innerHTML = `
-        <textarea id="chat-input" placeholder="Type a message... (try 'Let's play chess!')"
+        <textarea id="chat-input" placeholder="Ask me anything or try "I want to practice math!""
                   rows="1" ${state.isStreaming ? 'disabled' : ''}></textarea>
         ${state.isStreaming
           ? '<button onclick="cancelGeneration()" style="background:#c92a2a">Stop</button>'
@@ -577,7 +587,7 @@
         app.innerHTML = `
           <div class="auth-container">
             <div class="auth-card">
-              <h1>ChatBridge</h1>
+              <h1>ChatWeave</h1>
               <p>${isRegister ? 'Create your account' : 'Sign in to start chatting'}</p>
               <div id="auth-error"></div>
               <form id="auth-form">
@@ -660,15 +670,15 @@
                 ).join('')}
               </div>
               <div class="input-area">
-                <textarea id="chat-input" placeholder="Type a message... (try 'Let's play chess!')"
+                <textarea id="chat-input" placeholder="Ask me anything or try "I want to practice math!""
                           rows="1"></textarea>
                 <button onclick="handleSend()">Send</button>
               </div>
             ` : `
               <div class="empty-state">
-                <h3>Welcome to ChatBridge</h3>
-                <p>Create a new chat or select one from the sidebar</p>
-                <p style="font-size:13px; margin-top:8px;">Try: "Let's play chess!" or "What's the weather in Tokyo?"</p>
+                <h3>Welcome to ChatWeave!</h3>
+                <p>Your AI learning buddy. Pick an app below or start a new chat!</p>
+                <div class="app-discovery" id="app-discovery"></div>
               </div>
             `}
           </div>
@@ -685,6 +695,70 @@
           input.style.height = 'auto';
           input.style.height = Math.min(input.scrollHeight, 120) + 'px';
         };
+      }
+
+      // Load app discovery if empty state is shown
+      if (!activeSession) {
+        loadAppDiscovery();
+      }
+    }
+
+    // ========== App Discovery ==========
+    const APP_META = {
+      'chess-game':     { emoji: '\u265E', color: '#8B5CF6', prompt: "Let's play chess!" },
+      'math-quest':     { emoji: '\u2795', color: '#F59E0B', prompt: 'I want to practice math!' },
+      'word-lab':       { emoji: '\uD83D\uDCDA', color: '#10B981', prompt: 'Help me learn new words!' },
+      'money-sense':    { emoji: '\uD83D\uDCB0', color: '#3B82F6', prompt: 'Teach me about money!' },
+      'fact-or-fiction': { emoji: '\uD83D\uDD0D', color: '#EF4444', prompt: 'How do I spot fake news?' },
+    };
+
+    async function loadAppDiscovery() {
+      const container = document.getElementById('app-discovery');
+      if (!container) return;
+      try {
+        const res = await fetch('/api/plugins');
+        const data = await res.json();
+        const displayOrder = ['chess-game', 'money-sense', 'fact-or-fiction', 'math-quest', 'word-lab'];
+        const plugins = (data.plugins || []).filter(p => p.is_enabled)
+          .sort((a, b) => (displayOrder.indexOf(a.id) === -1 ? 99 : displayOrder.indexOf(a.id)) - (displayOrder.indexOf(b.id) === -1 ? 99 : displayOrder.indexOf(b.id)));
+        container.innerHTML = plugins.map(p => {
+          const meta = APP_META[p.id] || { emoji: '\uD83D\uDD27', color: '#6366F1', prompt: '' };
+          return `
+            <div class="app-card" data-prompt="${escapeHtml(meta.prompt)}">
+              <div class="app-card-icon" style="background:${meta.color}18;color:${meta.color}">
+                ${meta.emoji}
+              </div>
+              <div class="app-card-info">
+                <div class="app-card-name">${escapeHtml(p.name)}</div>
+                <div class="app-card-desc">${escapeHtml(p.description || '')}</div>
+                ${meta.prompt ? `<div class="app-card-try">Try: &quot;${escapeHtml(meta.prompt)}&quot;</div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Attach click handlers via event delegation
+        container.addEventListener('click', (e) => {
+          const card = e.target.closest('.app-card');
+          if (card && card.dataset.prompt) {
+            startAppFromDiscovery(card.dataset.prompt);
+          }
+        });
+      } catch {}
+    }
+
+    async function startAppFromDiscovery(prompt) {
+      if (!prompt) return;
+      if (!state.activeSessionId) {
+        await createSession();
+      }
+      // renderFull() ran synchronously inside createSession/selectSession,
+      // but give the DOM one frame to settle
+      await new Promise(r => requestAnimationFrame(r));
+      const input = document.getElementById('chat-input');
+      if (input) {
+        input.value = prompt;
+        handleSend();
       }
     }
 

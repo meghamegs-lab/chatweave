@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config';
-import { getDatabase } from '../db';
+import { query, queryOne } from '../db';
 import { AppError } from '../middleware/errorHandler';
 import { authMiddleware } from '../middleware/auth';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
@@ -65,12 +65,12 @@ router.post(
       }
 
       const { email, password, displayName, role } = parsed.data;
-      const db = getDatabase();
 
       // Check email uniqueness
-      const existing = db
-        .prepare('SELECT id FROM users WHERE email = ?')
-        .get(email);
+      const existing = await queryOne<{ id: string }>(
+        'SELECT id FROM users WHERE email = $1',
+        [email],
+      );
       if (existing) {
         throw new AppError(
           'An account with this email already exists',
@@ -84,9 +84,10 @@ router.post(
 
       // Insert user
       const id = uuidv4();
-      db.prepare(
-        'INSERT INTO users (id, email, password_hash, display_name, role) VALUES (?, ?, ?, ?, ?)',
-      ).run(id, email, passwordHash, displayName, role);
+      await query(
+        'INSERT INTO users (id, email, password_hash, display_name, role) VALUES ($1, $2, $3, $4, $5)',
+        [id, email, passwordHash, displayName, role],
+      );
 
       // Generate tokens
       const user = { id, email, role };
@@ -125,22 +126,18 @@ router.post(
       }
 
       const { email, password } = parsed.data;
-      const db = getDatabase();
 
       // Find user by email
-      const row = db
-        .prepare(
-          'SELECT id, email, password_hash, display_name, role FROM users WHERE email = ?',
-        )
-        .get(email) as
-        | {
-            id: string;
-            email: string;
-            password_hash: string;
-            display_name: string;
-            role: string;
-          }
-        | undefined;
+      const row = await queryOne<{
+        id: string;
+        email: string;
+        password_hash: string;
+        display_name: string;
+        role: string;
+      }>(
+        'SELECT id, email, password_hash, display_name, role FROM users WHERE email = $1',
+        [email],
+      );
 
       if (!row) {
         throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
@@ -181,7 +178,7 @@ router.post(
 
 router.post(
   '/refresh',
-  (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = req.cookies?.refreshToken;
       if (!token) {
@@ -205,12 +202,10 @@ router.post(
       }
 
       // Fetch the user to get current email and role for the new access token
-      const db = getDatabase();
-      const row = db
-        .prepare('SELECT id, email, role FROM users WHERE id = ?')
-        .get(decoded.userId) as
-        | { id: string; email: string; role: string }
-        | undefined;
+      const row = await queryOne<{ id: string; email: string; role: string }>(
+        'SELECT id, email, role FROM users WHERE id = $1',
+        [decoded.userId],
+      );
 
       if (!row) {
         throw new AppError('User not found', 401, 'USER_NOT_FOUND');
@@ -232,21 +227,17 @@ router.post(
 router.get(
   '/me',
   authMiddleware,
-  (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const db = getDatabase();
-      const row = db
-        .prepare(
-          'SELECT id, email, display_name, role FROM users WHERE id = ?',
-        )
-        .get(req.user!.userId) as
-        | {
-            id: string;
-            email: string;
-            display_name: string;
-            role: string;
-          }
-        | undefined;
+      const row = await queryOne<{
+        id: string;
+        email: string;
+        display_name: string;
+        role: string;
+      }>(
+        'SELECT id, email, display_name, role FROM users WHERE id = $1',
+        [req.user!.userId],
+      );
 
       if (!row) {
         throw new AppError('User not found', 404, 'USER_NOT_FOUND');
