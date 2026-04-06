@@ -474,21 +474,22 @@
               const loading = document.getElementById(`plugin-loading-${instanceId}`);
               if (loading) loading.remove();
               iframe.style.display = 'block';
-              // Auto-resize: poll iframe content height a few times after load
+              // Auto-resize: poll iframe content height, only grow never shrink
+              const minHeight = plugin.height || 600;
               let resizeAttempts = 0;
               const resizeInterval = setInterval(() => {
                 try {
                   const body = iframe.contentDocument?.body;
                   if (body) {
-                    const contentHeight = body.scrollHeight + 20;
-                    if (contentHeight > 100) {
+                    const contentHeight = Math.max(body.scrollHeight + 20, minHeight);
+                    if (contentHeight > plugin.height) {
                       iframe.style.height = contentHeight + 'px';
                       plugin.height = contentHeight;
                     }
                   }
                 } catch(e) { /* cross-origin, ignore */ }
-                if (++resizeAttempts >= 10) clearInterval(resizeInterval);
-              }, 500);
+                if (++resizeAttempts >= 15) clearInterval(resizeInterval);
+              }, 800);
               // Update header
               const frame = document.getElementById(`plugin-frame-${instanceId}`);
               if (frame) {
