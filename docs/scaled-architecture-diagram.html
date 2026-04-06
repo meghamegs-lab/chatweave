@@ -92,7 +92,7 @@
 
   <!-- Title -->
   <text x="700" y="38" text-anchor="middle" font-size="24" font-weight="bold" fill="#1e293b">ChatWeave: Scaled Production Architecture</text>
-  <text x="700" y="60" text-anchor="middle" font-size="13" fill="#64748b">High-Level System Design for 100K+ Users | Horizontal Scaling | Multi-Region Ready</text>
+  <text x="700" y="60" text-anchor="middle" font-size="13" fill="#64748b">High-Level System Design for 200K+ DAU (10K+ Districts) | Horizontal Scaling | Multi-Region Ready</text>
 
   <!-- ============================================ -->
   <!-- ROW 1: CLIENTS + CDN + WAF -->
@@ -108,7 +108,7 @@
   <text x="170" y="164" text-anchor="middle" font-size="9" fill="#6b7280">Chat UI + Plugin Iframes (sandboxed)</text>
   <text x="170" y="180" text-anchor="middle" font-size="9" fill="#6b7280">Socket.io WebSocket connections</text>
   <text x="170" y="196" text-anchor="middle" font-size="9" fill="#6b7280">JWT tokens stored in-memory</text>
-  <text x="170" y="214" text-anchor="middle" font-size="8" fill="#94a3b8">100K+ concurrent students</text>
+  <text x="170" y="214" text-anchor="middle" font-size="8" fill="#94a3b8">200K+ DAU — 20K-30K concurrent at peak</text>
 
   <!-- CDN / Edge -->
   <rect x="370" y="90" width="300" height="140" rx="12" fill="white" stroke="#7c3aed" stroke-width="1.5" filter="url(#shadow)"/>
@@ -140,16 +140,18 @@
   <rect x="1070" y="112" width="300" height="10" fill="#1e293b"/>
   <text x="1220" y="112" text-anchor="middle" font-size="13" font-weight="bold" fill="white">Scale Targets</text>
 
-  <text x="1110" y="142" font-size="9" fill="#475569" font-weight="bold">Concurrent users:</text>
-  <text x="1290" y="142" font-size="9" fill="#0ea5e9" font-weight="bold">10K–100K</text>
-  <text x="1110" y="160" font-size="9" fill="#475569" font-weight="bold">Messages/day:</text>
-  <text x="1290" y="160" font-size="9" fill="#0ea5e9" font-weight="bold">2M–20M</text>
-  <text x="1110" y="178" font-size="9" fill="#475569" font-weight="bold">Plugin launches/day:</text>
-  <text x="1290" y="178" font-size="9" fill="#0ea5e9" font-weight="bold">300K–3M</text>
-  <text x="1110" y="196" font-size="9" fill="#475569" font-weight="bold">LLM tokens/month:</text>
-  <text x="1290" y="196" font-size="9" fill="#0ea5e9" font-weight="bold">3B–30B</text>
-  <text x="1110" y="214" font-size="9" fill="#475569" font-weight="bold">Target latency (p99):</text>
-  <text x="1290" y="214" font-size="9" fill="#0ea5e9" font-weight="bold">&lt; 200ms (API)</text>
+  <text x="1110" y="138" font-size="9" fill="#475569" font-weight="bold">Daily active users:</text>
+  <text x="1290" y="138" font-size="9" fill="#0ea5e9" font-weight="bold">200K+ (10K districts)</text>
+  <text x="1110" y="153" font-size="9" fill="#475569" font-weight="bold">Peak concurrent:</text>
+  <text x="1290" y="153" font-size="9" fill="#0ea5e9" font-weight="bold">20K–30K (~15% DAU)</text>
+  <text x="1110" y="168" font-size="9" fill="#475569" font-weight="bold">Messages/day:</text>
+  <text x="1290" y="168" font-size="9" fill="#0ea5e9" font-weight="bold">4M–6M</text>
+  <text x="1110" y="183" font-size="9" fill="#475569" font-weight="bold">Plugin launches/day:</text>
+  <text x="1290" y="183" font-size="9" fill="#0ea5e9" font-weight="bold">600K–1M</text>
+  <text x="1110" y="198" font-size="9" fill="#475569" font-weight="bold">LLM tokens/month:</text>
+  <text x="1290" y="198" font-size="9" fill="#0ea5e9" font-weight="bold">6B–10B</text>
+  <text x="1110" y="213" font-size="9" fill="#475569" font-weight="bold">Target latency (p99):</text>
+  <text x="1290" y="213" font-size="9" fill="#0ea5e9" font-weight="bold">&lt; 200ms (API)</text>
 
   <!-- Arrows: Clients -> CDN, Clients -> WAF -->
   <line x1="310" y1="160" x2="368" y2="160" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
@@ -375,7 +377,7 @@
   <text x="1230" y="735" text-anchor="middle" font-size="8" fill="#6b7280">Prompt caching: ~90% reduction on system prompt</text>
   <text x="1230" y="748" text-anchor="middle" font-size="8" fill="#6b7280">Model routing: Haiku for 70% of messages</text>
   <text x="1230" y="761" text-anchor="middle" font-size="8" fill="#6b7280">Conversation summarization for long sessions</text>
-  <text x="1230" y="774" text-anchor="middle" font-size="8" fill="#6b7280">~$48K/mo optimized vs $120K/mo naive (at 100K users)</text>
+  <text x="1230" y="774" text-anchor="middle" font-size="8" fill="#6b7280">~$65K/mo optimized vs $160K/mo naive (at 200K DAU)</text>
 
   <!-- Arrow: Workers -> AI APIs -->
   <line x1="1220" y1="560" x2="1220" y2="598" stroke="#f97316" stroke-width="1.5" marker-end="url(#arrowOrange)"/>

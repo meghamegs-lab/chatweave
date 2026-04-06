@@ -1,0 +1,42 @@
+{
+  "id": "science-quiz",
+  "name": "Science Quiz",
+  "version": "1.0.0",
+  "description": "Interactive science trivia quiz powered by external API, demonstrating API-key authentication pattern for secure third-party data access",
+  "iframe_url": "/plugins/science-quiz/",
+  "category": "education",
+  "auth_type": "api_key",
+  "sandbox": { "permissions": ["allow-scripts"] },
+  "ui": { "default_height": 500, "max_height": 650, "resizable": false },
+  "tools": [
+    {
+      "name": "start_science_quiz",
+      "description": "Start an interactive science trivia quiz session with questions from various science categories",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": ["general-science", "biology", "physics", "chemistry", "astronomy", "earth-science"],
+            "description": "Science category for the quiz"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"],
+            "description": "Quiz difficulty level"
+          }
+        },
+        "required": ["category", "difficulty"]
+      }
+    },
+    {
+      "name": "get_quiz_score",
+      "description": "Get current quiz score and progress",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "completion_events": ["quiz_completed"]
+}

@@ -12,7 +12,7 @@ Infrastructure cost projections across four user tiers. All prices are monthly e
 | Avg tokens per message (prompt + completion) | ~1,500 (prompt) + ~500 (completion) |
 | Plugin launches per user per day | 3 |
 | Avg session duration | 15 minutes |
-| Peak concurrent users | 10% of total |
+| Peak concurrent users | 10-15% of DAU (e.g., 200K DAU → ~30K concurrent at school-hours peak) |
 | Database rows per user per month | ~600 (messages) + ~90 (plugin events) |
 | Static assets per plugin | ~2 MB (5 plugins = ~10 MB total) |
 
@@ -124,6 +124,23 @@ Infrastructure cost projections across four user tiers. All prices are monthly e
 | District | 1,000 | $164 | $0.16 | 73% |
 | State | 100,000 | $12,889 | $0.13 | 93% |
 | National | 1,000,000 | $128,300 | $0.13 | 93% |
+
+### Case Study Alignment: TutorMeAI (200K+ DAU, 10K Districts)
+
+The case study specifies 200,000+ students and teachers using the platform daily across 10,000 districts. This falls between Tier 3 (100K) and Tier 4 (1M). Interpolated estimate:
+
+| Metric | Value |
+|--------|-------|
+| **DAU** | 200,000 |
+| **Peak concurrent** | ~30,000 (15% of DAU, school-hours spike) |
+| **Messages/day** | ~4M (20 msg/user/day) |
+| **Plugin launches/day** | ~600K (3 per user per day) |
+| **AI tokens/month** | ~6B input + ~2B output |
+| **Estimated monthly cost** | **~$26,000** (with model tiering optimization) |
+| **Per-student cost** | **~$0.13/student/month** |
+| **Break-even pricing** | $2/student/month → 15x margin with district licensing |
+
+At 200K DAU, the architecture requires: 8-12 Express instances behind a load balancer, PostgreSQL with PgBouncer (replacing SQLite), Redis for Socket.io adapter + session caching, CDN for plugin static assets, and a BullMQ job queue for async LLM requests. The scaled architecture diagram shows this topology in detail.
 
 ### Key Takeaways
 

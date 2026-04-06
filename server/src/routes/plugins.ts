@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { pluginRegistry } from '../services/pluginRegistry';
+import { authMiddleware, requireRole } from '../middleware/auth';
 
 const router = Router();
 
@@ -45,7 +46,7 @@ router.get('/:id', (req: Request, res: Response, next: NextFunction) => {
  * POST /api/plugins/register
  * Register a new plugin by providing its manifest.
  */
-router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/register', authMiddleware, requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const plugin = await pluginRegistry.register(req.body);
     res.status(201).json({ plugin });
@@ -58,7 +59,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
  * PUT /api/plugins/:id
  * Update an existing plugin's manifest.
  */
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', authMiddleware, requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdParam(req);
     const plugin = await pluginRegistry.update(id, req.body);
@@ -72,7 +73,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
  * DELETE /api/plugins/:id
  * Remove a plugin.
  */
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', authMiddleware, requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdParam(req);
     await pluginRegistry.remove(id);
@@ -86,7 +87,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
  * POST /api/plugins/:id/enable
  * Enable a plugin.
  */
-router.post('/:id/enable', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/enable', authMiddleware, requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdParam(req);
     await pluginRegistry.enable(id);
@@ -101,7 +102,7 @@ router.post('/:id/enable', async (req: Request, res: Response, next: NextFunctio
  * POST /api/plugins/:id/disable
  * Disable a plugin.
  */
-router.post('/:id/disable', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/disable', authMiddleware, requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdParam(req);
     await pluginRegistry.disable(id);

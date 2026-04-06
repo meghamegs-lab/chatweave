@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config';
 import { query, queryOne, queryAll } from '../db';
-import { streamChat, parseToolName, buildToolsForSession } from './llmService';
+import { streamChat, parseToolName, buildToolsForSession, ToolExecutor } from './llmService';
 import { JwtPayload } from '../middleware/auth';
 
 // Track active generations for cancellation
@@ -102,42 +102,81 @@ export function initializeSocketService(io: SocketIOServer): void {
 
       const assistantMsgId = uuidv4();
       let fullResponse = '';
+      const toolInteractions: Array<{ tool: string; args: Record<string, unknown>; result: string }> = [];
 
       console.log(`[Socket.io] Sending ${messages.length} messages to LLM`);
+
+      // Tool executor: sends tool calls to the frontend plugin and waits for results
+      const toolExecutor: ToolExecutor = (pluginId, toolName, args) => {
+        return new Promise<string>((resolve, reject) => {
+          const toolCallId = uuidv4();
+
+          // Tell the frontend we're waiting for a tool result
+          socket.emit('chat:tool:executing', { sessionId, generationId, pluginId, toolName });
+
+          const timeout = setTimeout(() => {
+            pendingToolCalls.delete(toolCallId);
+            console.log(`[Socket.io] Tool call timed out: ${pluginId}/${toolName}`);
+            const errResult = JSON.stringify({ error: 'Tool call timed out after 30 seconds' });
+            toolInteractions.push({ tool: `${pluginId}/${toolName}`, args, result: errResult });
+            socket.emit('chat:tool:done', { sessionId, generationId });
+            resolve(errResult);
+          }, 30000);
+
+          pendingToolCalls.set(toolCallId, {
+            resolve: (result) => {
+              const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
+              toolInteractions.push({ tool: `${pluginId}/${toolName}`, args, result: resultStr });
+              socket.emit('chat:tool:done', { sessionId, generationId });
+              resolve(resultStr);
+            },
+            reject,
+            timeout,
+          });
+
+          console.log(`[Socket.io] Emitting plugin:invoke for ${pluginId}/${toolName} (toolCallId: ${toolCallId})`);
+          socket.emit('plugin:invoke', {
+            toolCallId,
+            pluginId,
+            toolName,
+            parameters: args,
+            sessionId,
+          });
+        });
+      };
 
       await streamChat({
         messages,
         sessionId,
         signal: abortController.signal,
+        toolExecutor,
         onToken: (token) => {
           fullResponse += token;
           socket.emit('chat:stream', { sessionId, token, generationId });
         },
-        onToolCall: (toolCallId, toolName, args) => {
-          const parsed = parseToolName(toolName);
-          if (parsed) {
-            console.log(`[Socket.io] Emitting plugin:invoke for ${parsed.pluginId}/${parsed.toolName}`);
-            socket.emit('plugin:invoke', {
-              toolCallId,
-              pluginId: parsed.pluginId,
-              toolName: parsed.toolName,
-              parameters: args,
-              sessionId,
-            });
-          }
-        },
         onFinish: async (text, usage) => {
-          // Only save assistant message if it has content
           const finishTime = new Date().toISOString();
-          if (text && text.trim().length > 0) {
+
+          // Build the full content including tool context for conversation history
+          let savedContent = text || '';
+          if (toolInteractions.length > 0) {
+            const toolContext = toolInteractions
+              .map(t => `[Used tool ${t.tool}: ${t.result}]`)
+              .join('\n');
+            savedContent = savedContent
+              ? `${savedContent}\n\n${toolContext}`
+              : toolContext;
+          }
+
+          if (savedContent && savedContent.trim().length > 0) {
             await query(
               'INSERT INTO messages (id, session_id, role, content, metadata, created_at) VALUES ($1, $2, $3, $4, $5, $6)',
               [
                 assistantMsgId,
                 sessionId,
                 'assistant',
-                text,
-                JSON.stringify({ usage }),
+                savedContent,
+                JSON.stringify({ usage, toolCalls: toolInteractions.length > 0 ? toolInteractions : undefined }),
                 finishTime
               ]
             );
@@ -155,11 +194,11 @@ export function initializeSocketService(io: SocketIOServer): void {
           activeGenerations.delete(generationId);
         },
         onError: (error) => {
-          console.error('[Socket.io] LLM error:', error.message, error.stack?.slice(0, 200));
+          console.error('[Socket.io] LLM error:', error.message, error.stack?.slice(0, 500));
           socket.emit('chat:error', {
             sessionId,
             generationId,
-            message: 'Failed to generate response. Please try again.',
+            message: `Failed to generate response: ${error.message}`,
           });
           activeGenerations.delete(generationId);
         },
@@ -221,6 +260,39 @@ export function initializeSocketService(io: SocketIOServer): void {
       );
 
       console.log(`[Socket.io] Plugin completed: ${data.pluginId} in session ${data.sessionId}`);
+    });
+
+    // --- Plugin error from frontend ---
+    socket.on('plugin:error', async (data: {
+      sessionId: string;
+      pluginId: string;
+      instanceId: string;
+      code: string;
+      message: string;
+    }) => {
+      const now = new Date().toISOString();
+
+      // Update plugin instance to error status
+      await query(`
+        UPDATE plugin_instances SET status = 'error', completion_data = $1, updated_at = $2
+        WHERE id = $3 AND session_id = $4
+      `, [JSON.stringify({ error: data.code, message: data.message }), now, data.instanceId, data.sessionId]);
+
+      // Inject error context so LLM knows the plugin failed
+      const errorMsg = `[Plugin Error] ${data.pluginId}: ${data.message} (code: ${data.code})`;
+      await query(
+        'INSERT INTO messages (id, session_id, role, content, metadata, created_at) VALUES ($1, $2, $3, $4, $5, $6)',
+        [
+          uuidv4(),
+          data.sessionId,
+          'system',
+          errorMsg,
+          JSON.stringify({ pluginId: data.pluginId, error: data.code, message: data.message }),
+          now
+        ]
+      );
+
+      console.log(`[Socket.io] Plugin error: ${data.pluginId} in session ${data.sessionId} — ${data.code}: ${data.message}`);
     });
 
     // --- Plugin state update from frontend ---

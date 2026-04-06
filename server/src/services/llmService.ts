@@ -26,15 +26,25 @@ You have these learning apps available as tools — USE THEM whenever a student 
 - Spell & Learn Word Lab (word-lab__start_word_challenge) — for vocabulary, spelling, phonics, and word-building
 - Money Sense (money-sense__start_money_lesson) — for financial literacy (counting money, making change, budgeting, shopping, saving)
 - Fact or Fiction (fact-or-fiction__start_challenge) — for media literacy (spotting fake news, source evaluation, bias detection)
+- Science Quiz (science-quiz__start_science_quiz) — for science trivia across biology, chemistry, physics, earth science
+- Study Planner (study-planner__create_study_plan) — for creating personalized study plans with goals and milestones
 
-IMPORTANT: When a student asks about ANY of these topics, ALWAYS use the corresponding tool call to launch the app. Do not just explain — launch the app so they can interact with it.
+IMPORTANT RULES:
+1. When a user mentions ANY of these topics, IMMEDIATELY call the corresponding tool. Do NOT ask follow-up questions first — use reasonable defaults for any missing parameters.
+2. For study plans: if no specific goal is mentioned, use "Master the subject" as the goal. If no duration is given, default to 4 weeks.
+3. For games/quizzes: pick an appropriate difficulty level or topic based on what the user said.
+4. NEVER explain what you could do — just DO IT by calling the tool right away.
+5. After the tool launches the app, give a brief friendly message about what you launched.
 
-Tool names are formatted as pluginId__toolName. When you use a tool, the app appears in the chat for the student to interact with.
+Tool names are formatted as pluginId__toolName. When you use a tool, the app appears in the chat for the user to interact with.
 
-Be encouraging, friendly, and age-appropriate. Use simple language.`;
+Be encouraging, friendly, and age-appropriate. Use simple language. Keep responses SHORT — 1-2 sentences max.`;
+
+// Callback type for executing a plugin tool and getting its result
+export type ToolExecutor = (pluginId: string, toolName: string, args: Record<string, unknown>) => Promise<string>;
 
 // Build tools object for Vercel AI SDK from enabled plugins
-export function buildToolsForSession(): Record<string, any> {
+export function buildToolsForSession(executor?: ToolExecutor): Record<string, any> {
   const pluginTools = pluginRegistry.getToolsForEnabledPlugins();
   const tools: Record<string, any> = {};
 
@@ -85,6 +95,12 @@ export function buildToolsForSession(): Record<string, any> {
     tools[namespacedName] = tool({
       description,
       inputSchema: z.object(zodProperties),
+      ...(executor ? {
+        execute: async (args: Record<string, unknown>) => {
+          const result = await executor(pluginId, pluginTool.name, args);
+          return result;
+        },
+      } : {}),
     } as any);
   }
 
@@ -105,17 +121,18 @@ export interface StreamChatOptions {
   messages: Array<{ role: 'user' | 'assistant'; content: string }>;
   sessionId: string;
   onToken: (token: string) => void;
-  onToolCall: (toolCallId: string, toolName: string, args: Record<string, unknown>) => void;
+  onToolCall?: (toolCallId: string, toolName: string, args: Record<string, unknown>) => void;
   onFinish: (fullText: string, usage: { promptTokens: number; completionTokens: number }) => void;
   onError: (error: Error) => void;
   signal?: AbortSignal;
+  toolExecutor?: ToolExecutor;
 }
 
 export async function streamChat(options: StreamChatOptions): Promise<void> {
-  const { messages, onToken, onToolCall, onFinish, onError, signal } = options;
+  const { messages, onToken, onToolCall, onFinish, onError, signal, toolExecutor } = options;
 
   try {
-    const tools = buildToolsForSession();
+    const tools = buildToolsForSession(toolExecutor);
 
     const result = streamText({
       model: getModel(),
@@ -124,6 +141,12 @@ export async function streamChat(options: StreamChatOptions): Promise<void> {
       tools: Object.keys(tools).length > 0 ? tools : undefined,
       abortSignal: signal,
       stopWhen: stepCountIs(5),
+      onStepFinish: (event: any) => {
+        console.log(`[LLM] Step finished: type=${event.stepType ?? 'unknown'}, toolCalls=${event.toolCalls?.length ?? 0}, text=${(event.text ?? '').slice(0, 100)}`);
+      },
+      onError: (event: any) => {
+        console.error(`[LLM] Stream error:`, event?.error?.message ?? event);
+      },
     });
 
     let fullText = '';
@@ -140,13 +163,18 @@ export async function streamChat(options: StreamChatOptions): Promise<void> {
         }
           break;
         case 'tool-call': {
-          // Vercel AI SDK v6 uses 'input' instead of 'args'
           const toolArgs = ((part as any).input ?? (part as any).args ?? {}) as Record<string, unknown>;
           console.log(`[LLM] Tool call: ${part.toolName}`, JSON.stringify(toolArgs));
-          onToolCall(part.toolCallId, part.toolName, toolArgs);
+          if (onToolCall) {
+            onToolCall(part.toolCallId, part.toolName, toolArgs);
+          }
         }
           break;
-        // Ignore other part types (step-start, step-finish, tool-result, etc.)
+        case 'tool-result': {
+          const resultStr = JSON.stringify((part as any).result ?? (part as any).output ?? null);
+          console.log(`[LLM] Tool result for ${(part as any).toolName}: ${(resultStr ?? '').slice(0, 200)}`);
+        }
+          break;
         default:
           break;
       }

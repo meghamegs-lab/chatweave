@@ -84,6 +84,11 @@ if (fs.existsSync(pluginsDir)) {
   }
 }
 
+// --- SPA fallback routes (serve index.html for client-side routes) ---
+app.get('/submit', (_req, res) => {
+  res.sendFile(path.resolve(__dirname, '..', 'public', 'index.html'));
+});
+
 // --- Error handling (must be last) ---
 app.use(errorHandler);
 

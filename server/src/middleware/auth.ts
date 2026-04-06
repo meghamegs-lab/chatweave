@@ -28,6 +28,22 @@ declare global {
  * Extracts Bearer token from Authorization header, verifies it,
  * and attaches the decoded user payload to req.user.
  */
+/**
+ * Role-based authorization middleware.
+ * Must be used after authMiddleware.
+ */
+export function requireRole(...roles: string[]) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      throw new AppError('Authentication required', 401, 'MISSING_TOKEN');
+    }
+    if (!roles.includes(req.user.role)) {
+      throw new AppError('Insufficient permissions', 403, 'FORBIDDEN');
+    }
+    next();
+  };
+}
+
 export function authMiddleware(
   req: Request,
   _res: Response,
