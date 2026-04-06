@@ -66,7 +66,7 @@
     @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
 
     /* Plugin iframe */
-    .plugin-frame { align-self: flex-start; width: 90%; max-width: 520px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-card); margin: 4px 0; }
+    .plugin-frame { align-self: flex-start; width: 95%; max-width: 680px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-card); margin: 4px 0; }
     .plugin-frame-header { padding: 8px 12px; background: var(--bg); font-size: 12px; font-weight: 600; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; }
     .plugin-frame-header .badge { background: #d3f9d8; color: #2b8a3e; padding: 2px 8px; border-radius: 8px; font-size: 11px; }
     .plugin-frame iframe { width: 100%; border: none; display: block; }
@@ -386,7 +386,7 @@
             pluginId,
             pluginName: plugin.name || pluginId,
             iframeUrl,
-            height: manifest.ui?.default_height || 400,
+            height: manifest.ui?.default_height || 600,
             status: 'loading',
             pendingInvocations: [],
           };
@@ -474,6 +474,21 @@
               const loading = document.getElementById(`plugin-loading-${instanceId}`);
               if (loading) loading.remove();
               iframe.style.display = 'block';
+              // Auto-resize: poll iframe content height a few times after load
+              let resizeAttempts = 0;
+              const resizeInterval = setInterval(() => {
+                try {
+                  const body = iframe.contentDocument?.body;
+                  if (body) {
+                    const contentHeight = body.scrollHeight + 20;
+                    if (contentHeight > 100) {
+                      iframe.style.height = contentHeight + 'px';
+                      plugin.height = contentHeight;
+                    }
+                  }
+                } catch(e) { /* cross-origin, ignore */ }
+                if (++resizeAttempts >= 10) clearInterval(resizeInterval);
+              }, 500);
               // Update header
               const frame = document.getElementById(`plugin-frame-${instanceId}`);
               if (frame) {
