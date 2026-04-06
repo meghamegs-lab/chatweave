@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatWeave — Trust &amp; Security Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232736;
+    --border: #2e3348;
+    --text: #e4e6f0;
+    --text-dim: #8b8fa7;
+    --green: #34d399;
+    --green-bg: rgba(52,211,153,0.08);
+    --green-border: rgba(52,211,153,0.25);
+    --yellow: #fbbf24;
+    --yellow-bg: rgba(251,191,36,0.08);
+    --yellow-border: rgba(251,191,36,0.25);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.08);
+    --red-border: rgba(248,113,113,0.25);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96,165,250,0.08);
+    --blue-border: rgba(96,165,250,0.25);
+    --purple: #a78bfa;
+    --purple-bg: rgba(167,139,250,0.08);
+    --purple-border: rgba(167,139,250,0.25);
+    --cyan: #22d3ee;
+    --cyan-bg: rgba(34,211,238,0.08);
+    --cyan-border: rgba(34,211,238,0.25);
+    --orange: #fb923c;
+    --orange-bg: rgba(251,146,60,0.08);
+    --orange-border: rgba(251,146,60,0.25);
+    --pink: #f472b6;
+    --pink-bg: rgba(244,114,182,0.08);
+    --pink-border: rgba(244,114,182,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    padding: 48px 24px 32px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .header h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--blue), var(--purple), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .header p { color: var(--text-dim); font-size: 1rem; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    padding: 24px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Flow Container ── */
+  .flow {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 32px 64px;
+  }
+
+  /* ── Layer Section ── */
+  .layer {
+    position: relative;
+    margin-bottom: 40px;
+  }
+  .layer-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+
+  /* ── Cards Grid ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    cursor: default;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  /* Card colour variants */
+  .card.green  { border-color: var(--green-border);  background: var(--green-bg);  }
+  .card.green::before  { background: var(--green);  }
+  .card.green:hover    { border-color: var(--green);  }
+
+  .card.yellow { border-color: var(--yellow-border); background: var(--yellow-bg); }
+  .card.yellow::before { background: var(--yellow); }
+  .card.yellow:hover   { border-color: var(--yellow); }
+
+  .card.red    { border-color: var(--red-border);    background: var(--red-bg);    }
+  .card.red::before    { background: var(--red);    }
+  .card.red:hover      { border-color: var(--red);    }
+
+  .card.blue   { border-color: var(--blue-border);   background: var(--blue-bg);   }
+  .card.blue::before   { background: var(--blue);   }
+  .card.blue:hover     { border-color: var(--blue);   }
+
+  .card.purple { border-color: var(--purple-border); background: var(--purple-bg); }
+  .card.purple::before { background: var(--purple); }
+  .card.purple:hover   { border-color: var(--purple); }
+
+  .card.cyan   { border-color: var(--cyan-border);   background: var(--cyan-bg);   }
+  .card.cyan::before   { background: var(--cyan);   }
+  .card.cyan:hover     { border-color: var(--cyan);   }
+
+  .card.orange { border-color: var(--orange-border); background: var(--orange-bg); }
+  .card.orange::before { background: var(--orange); }
+  .card.orange:hover   { border-color: var(--orange); }
+
+  .card.pink   { border-color: var(--pink-border);   background: var(--pink-bg);   }
+  .card.pink::before   { background: var(--pink);   }
+  .card.pink:hover     { border-color: var(--pink);   }
+
+  /* Card Head */
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .card-icon {
+    font-size: 1.4rem;
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .card.green  .card-icon { background: rgba(52,211,153,0.15); }
+  .card.yellow .card-icon { background: rgba(251,191,36,0.15); }
+  .card.red    .card-icon { background: rgba(248,113,113,0.15); }
+  .card.blue   .card-icon { background: rgba(96,165,250,0.15); }
+  .card.purple .card-icon { background: rgba(167,139,250,0.15); }
+  .card.cyan   .card-icon { background: rgba(34,211,238,0.15); }
+  .card.orange .card-icon { background: rgba(251,146,60,0.15); }
+  .card.pink   .card-icon { background: rgba(244,114,182,0.15); }
+
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  /* Status Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-bottom: 12px;
+  }
+  .badge.implemented   { background: rgba(52,211,153,0.15); color: var(--green);  }
+  .badge.partial       { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .badge.missing       { background: rgba(248,113,113,0.15); color: var(--red);   }
+  .badge.at-scale      { background: rgba(167,139,250,0.15); color: var(--purple);}
+
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    animation: pulse-badge 2s ease-in-out infinite;
+  }
+  .badge.implemented .badge-dot { background: var(--green);  }
+  .badge.partial     .badge-dot { background: var(--yellow); }
+  .badge.missing     .badge-dot { background: var(--red);    }
+  .badge.at-scale    .badge-dot { background: var(--purple); }
+
+  @keyframes pulse-badge {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* List in card */
+  .card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .card li {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--text-dim);
+    padding: 3px 0 3px 18px;
+    position: relative;
+  }
+  .card li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .card.green  li::before { background: var(--green);  opacity: 0.5; }
+  .card.yellow li::before { background: var(--yellow); opacity: 0.5; }
+  .card.red    li::before { background: var(--red);    opacity: 0.5; }
+  .card.blue   li::before { background: var(--blue);   opacity: 0.5; }
+  .card.purple li::before { background: var(--purple); opacity: 0.5; }
+  .card.cyan   li::before { background: var(--cyan);   opacity: 0.5; }
+  .card.orange li::before { background: var(--orange); opacity: 0.5; }
+  .card.pink   li::before { background: var(--pink);   opacity: 0.5; }
+
+  .card .file-ref {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    opacity: 0.65;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* ── Connector arrows between layers ── */
+  .connector {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+  }
+  .connector svg {
+    width: 32px;
+    height: 32px;
+    opacity: 0.3;
+  }
+
+  /* ── Scale Section ── */
+  .scale-section {
+    max-width: 1300px;
+    margin: 20px auto 64px;
+    padding: 0 32px;
+  }
+  .scale-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .scale-subtitle {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    margin-bottom: 20px;
+  }
+  .scale-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+  }
+  .scale-card {
+    background: var(--surface);
+    border: 1px solid var(--purple-border);
+    border-radius: 14px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scale-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+    background: linear-gradient(90deg, var(--purple), var(--pink));
+  }
+  .scale-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .scale-card-icon {
+    font-size: 1.2rem;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: rgba(167,139,250,0.12);
+    flex-shrink: 0;
+  }
+  .scale-card-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--purple);
+  }
+  .scale-card p {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .priority-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 10px;
+  }
+  .priority-tag.critical { background: rgba(248,113,113,0.2); color: var(--red); }
+  .priority-tag.high     { background: rgba(251,146,60,0.2);  color: var(--orange); }
+  .priority-tag.medium   { background: rgba(251,191,36,0.2);  color: var(--yellow); }
+
+  /* ── Architecture Flow Diagram ── */
+  .arch-diagram {
+    max-width: 1300px;
+    margin: 0 auto 48px;
+    padding: 0 32px;
+  }
+  .arch-diagram h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .diagram-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 24px;
+    overflow-x: auto;
+  }
+
+  /* SVG flow diagram */
+  .flow-svg {
+    display: block;
+    margin: 0 auto;
+  }
+  .flow-svg text {
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Tooltip ── */
+  .tooltip {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    max-width: 320px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 999;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .tooltip.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="tooltip" id="tooltip"></div>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<div class="header">
+  <h1>ChatWeave Trust &amp; Security Architecture</h1>
+  <p>Full audit of implemented controls, gaps, and scale recommendations</p>
+</div>
+
+<!-- ═══════════ LEGEND ═══════════ -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Implemented</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Partial</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Missing</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Needed at Scale</div>
+</div>
+
+<!-- ═══════════ REQUEST-FLOW DIAGRAM ═══════════ -->
+<div class="arch-diagram">
+  <h2>Request Security Flow</h2>
+  <div class="diagram-canvas">
+    <svg class="flow-svg" viewBox="0 0 1200 340" width="100%" height="340">
+      <!-- Background lanes -->
+      <rect x="0" y="0" width="1200" height="70" rx="0" fill="rgba(96,165,250,0.04)" />
+      <text x="16" y="42" font-size="10" fill="#8b8fa7" font-weight="600" letter-spacing="1.5" text-transform="uppercase">CLIENT</text>
+
+      <rect x="0" y="80" width="1200" height="70" rx="0" fill="rgba(52,211,153,0.04)" />
+      <text x="16" y="122" font-size="10" fill="#8b8fa7" font-weight="600" letter-spacing="1.5">MIDDLEWARE</text>
+
+      <rect x="0" y="160" width="1200" height="70" rx="0" fill="rgba(167,139,250,0.04)" />
+      <text x="16" y="202" font-size="10" fill="#8b8fa7" font-weight="600" letter-spacing="1.5">APPLICATION</text>
+
+      <rect x="0" y="240" width="1200" height="70" rx="0" fill="rgba(34,211,238,0.04)" />
+      <text x="16" y="282" font-size="10" fill="#8b8fa7" font-weight="600" letter-spacing="1.5">DATA</text>
+
+      <!-- ─── Client Row ─── -->
+      <rect x="120" y="15" width="140" height="40" rx="10" fill="rgba(96,165,250,0.12)" stroke="var(--blue)" stroke-width="1.2"/>
+      <text x="190" y="40" text-anchor="middle" font-size="12" font-weight="600" fill="var(--blue)">Electron App</text>
+
+      <line x1="260" y1="35" x2="310" y2="35" stroke="var(--blue)" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <rect x="310" y="15" width="140" height="40" rx="10" fill="rgba(96,165,250,0.12)" stroke="var(--blue)" stroke-width="1.2"/>
+      <text x="380" y="40" text-anchor="middle" font-size="12" font-weight="600" fill="var(--blue)">HTTP / WS</text>
+
+      <line x1="450" y1="35" x2="500" y2="35" stroke="var(--blue)" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+      <rect x="500" y="15" width="200" height="40" rx="10" fill="rgba(251,191,36,0.12)" stroke="var(--yellow)" stroke-width="1.2"/>
+      <text x="600" y="40" text-anchor="middle" font-size="12" font-weight="600" fill="var(--yellow)">JWT Bearer Token</text>
+
+      <line x1="700" y1="35" x2="750" y2="35" stroke="var(--yellow)" stroke-width="1.5" marker-end="url(#arrowYellow)"/>
+
+      <rect x="750" y="15" width="180" height="40" rx="10" fill="rgba(248,113,113,0.12)" stroke="var(--red)" stroke-width="1.2" stroke-dasharray="5,3"/>
+      <text x="840" y="33" text-anchor="middle" font-size="11" font-weight="600" fill="var(--red)">Rate Limiter</text>
+      <text x="840" y="47" text-anchor="middle" font-size="9" fill="var(--red)" opacity="0.7">NOT IMPLEMENTED</text>
+
+      <!-- ─── Middleware Row ─── -->
+      <rect x="120" y="95" width="130" height="40" rx="10" fill="rgba(52,211,153,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+      <text x="185" y="120" text-anchor="middle" font-size="12" font-weight="600" fill="var(--green)">CORS</text>
+
+      <line x1="250" y1="115" x2="290" y2="115" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+      <rect x="290" y="95" width="130" height="40" rx="10" fill="rgba(52,211,153,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+      <text x="355" y="120" text-anchor="middle" font-size="12" font-weight="600" fill="var(--green)">Auth MW</text>
+
+      <line x1="420" y1="115" x2="460" y2="115" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+      <rect x="460" y="95" width="160" height="40" rx="10" fill="rgba(52,211,153,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+      <text x="540" y="120" text-anchor="middle" font-size="12" font-weight="600" fill="var(--green)">Zod Validation</text>
+
+      <line x1="620" y1="115" x2="660" y2="115" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+      <rect x="660" y="95" width="160" height="40" rx="10" fill="rgba(52,211,153,0.12)" stroke="var(--green)" stroke-width="1.2"/>
+      <text x="740" y="120" text-anchor="middle" font-size="12" font-weight="600" fill="var(--green)">Error Handler</text>
+
+      <line x1="820" y1="115" x2="860" y2="115" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+
+      <rect x="860" y="95" width="170" height="40" rx="10" fill="rgba(248,113,113,0.12)" stroke="var(--red)" stroke-width="1.2" stroke-dasharray="5,3"/>
+      <text x="945" y="113" text-anchor="middle" font-size="11" font-weight="600" fill="var(--red)">CSP / Helmet</text>
+      <text x="945" y="127" text-anchor="middle" font-size="9" fill="var(--red)" opacity="0.7">NOT IMPLEMENTED</text>
+
+      <!-- ─── Application Row ─── -->
+      <rect x="120" y="175" width="170" height="40" rx="10" fill="rgba(167,139,250,0.12)" stroke="var(--purple)" stroke-width="1.2"/>
+      <text x="205" y="200" text-anchor="middle" font-size="12" font-weight="600" fill="var(--purple)">Route Handlers</text>
+
+      <line x1="290" y1="195" x2="330" y2="195" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+
+      <rect x="330" y="175" width="170" height="40" rx="10" fill="rgba(167,139,250,0.12)" stroke="var(--purple)" stroke-width="1.2"/>
+      <text x="415" y="200" text-anchor="middle" font-size="12" font-weight="600" fill="var(--purple)">Socket.io Service</text>
+
+      <line x1="500" y1="195" x2="540" y2="195" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+
+      <rect x="540" y="175" width="190" height="40" rx="10" fill="rgba(167,139,250,0.12)" stroke="var(--purple)" stroke-width="1.2"/>
+      <text x="635" y="200" text-anchor="middle" font-size="12" font-weight="600" fill="var(--purple)">Plugin Moderation</text>
+
+      <line x1="730" y1="195" x2="770" y2="195" stroke="var(--purple)" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+
+      <rect x="770" y="175" width="190" height="40" rx="10" fill="rgba(251,191,36,0.12)" stroke="var(--yellow)" stroke-width="1.2"/>
+      <text x="865" y="193" text-anchor="middle" font-size="11" font-weight="600" fill="var(--yellow)">Plugin Sandbox</text>
+      <text x="865" y="207" text-anchor="middle" font-size="9" fill="var(--yellow)" opacity="0.8">iframe + postMessage</text>
+
+      <!-- ─── Data Row ─── -->
+      <rect x="120" y="255" width="200" height="40" rx="10" fill="rgba(34,211,238,0.12)" stroke="var(--cyan)" stroke-width="1.2"/>
+      <text x="220" y="280" text-anchor="middle" font-size="12" font-weight="600" fill="var(--cyan)">Parameterized Queries</text>
+
+      <line x1="320" y1="275" x2="370" y2="275" stroke="var(--cyan)" stroke-width="1.5" marker-end="url(#arrowCyan)"/>
+
+      <rect x="370" y="255" width="180" height="40" rx="10" fill="rgba(34,211,238,0.12)" stroke="var(--cyan)" stroke-width="1.2"/>
+      <text x="460" y="280" text-anchor="middle" font-size="12" font-weight="600" fill="var(--cyan)">FK Constraints</text>
+
+      <line x1="550" y1="275" x2="600" y2="275" stroke="var(--cyan)" stroke-width="1.5" marker-end="url(#arrowCyan)"/>
+
+      <rect x="600" y="255" width="180" height="40" rx="10" fill="rgba(34,211,238,0.12)" stroke="var(--cyan)" stroke-width="1.2"/>
+      <text x="690" y="280" text-anchor="middle" font-size="12" font-weight="600" fill="var(--cyan)">bcrypt (12 rounds)</text>
+
+      <line x1="780" y1="275" x2="830" y2="275" stroke="var(--cyan)" stroke-width="1.5" marker-end="url(#arrowCyan)"/>
+
+      <rect x="830" y="255" width="200" height="40" rx="10" fill="rgba(248,113,113,0.12)" stroke="var(--red)" stroke-width="1.2" stroke-dasharray="5,3"/>
+      <text x="930" y="273" text-anchor="middle" font-size="11" font-weight="600" fill="var(--red)">Audit Log Table</text>
+      <text x="930" y="287" text-anchor="middle" font-size="9" fill="var(--red)" opacity="0.7">NOT IMPLEMENTED</text>
+
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--blue)" />
+        </marker>
+        <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--green)" />
+        </marker>
+        <marker id="arrowYellow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--yellow)" />
+        </marker>
+        <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--purple)" />
+        </marker>
+        <marker id="arrowCyan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--cyan)" />
+        </marker>
+      </defs>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══════════ IMPLEMENTED CONTROLS ═══════════ -->
+<div class="flow">
+
+  <!-- ── Layer: Authentication & Identity ── -->
+  <div class="layer">
+    <div class="layer-label">Authentication &amp; Identity</div>
+    <div class="cards">
+
+      <div class="card green" data-tip="JWT access tokens (1 hr) + refresh tokens (7 day) with HttpOnly cookies. Separate secrets for access & refresh.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f511;</div>
+          <div class="card-title">JWT Token System</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>Access tokens: 1-hour expiry</li>
+          <li>Refresh tokens: 7-day, HttpOnly cookie</li>
+          <li>Separate JWT secrets for access / refresh</li>
+          <li>Bearer token extraction from header</li>
+        </ul>
+        <span class="file-ref">server/src/utils/jwt.ts &middot; server/src/middleware/auth.ts</span>
+      </div>
+
+      <div class="card green" data-tip="bcrypt with 12 salt rounds — strong default, resistant to brute-force.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f512;</div>
+          <div class="card-title">Password Hashing (bcrypt)</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>bcrypt v5.1 with 12 rounds</li>
+          <li>Secure hash on registration</li>
+          <li>Timing-safe comparison on login</li>
+        </ul>
+        <span class="file-ref">server/src/routes/auth.ts:34</span>
+      </div>
+
+      <div class="card green" data-tip="Socket.io middleware validates JWT before accepting connections. User object attached to authenticated socket.">
+        <div class="card-head">
+          <div class="card-icon">&#x26a1;</div>
+          <div class="card-title">WebSocket Auth</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>JWT validated before socket connect</li>
+          <li>User attached to socket context</li>
+          <li>Per-user room isolation</li>
+        </ul>
+        <span class="file-ref">server/src/services/socketService.ts:20-41</span>
+      </div>
+
+      <div class="card yellow" data-tip="Role field exists (student/teacher/admin) but no granular permission middleware.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f464;</div>
+          <div class="card-title">Role-Based Access</div>
+        </div>
+        <span class="badge partial"><span class="badge-dot"></span>Partial</span>
+        <ul>
+          <li>Roles: student | teacher | admin</li>
+          <li>CHECK constraint on schema</li>
+          <li><strong>Gap:</strong> No granular permission middleware</li>
+          <li><strong>Gap:</strong> No route-level RBAC guards</li>
+        </ul>
+        <span class="file-ref">server/src/db/schema.sql:6</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Layer: Input Validation & Sanitization ── -->
+  <div class="layer">
+    <div class="layer-label">Input Validation &amp; Sanitization</div>
+    <div class="cards">
+
+      <div class="card blue" data-tip="Zod validates auth payloads (email, 8+ char password), chat messages (1–500 chars), plugin manifests (regex IDs).">
+        <div class="card-head">
+          <div class="card-icon">&#x1f6e1;</div>
+          <div class="card-title">Zod Schema Validation</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>Auth: email, 8+ char passwords, display names</li>
+          <li>Chat: session titles (1–500), message content</li>
+          <li>Plugins: ID regex, tool name regex, URL checks</li>
+          <li>Pagination: 1–200 limit, 0+ offset</li>
+        </ul>
+        <span class="file-ref">server/src/routes/auth.ts:18-28 &middot; server/src/routes/chat.ts:14-31</span>
+      </div>
+
+      <div class="card blue" data-tip="All SQL queries use parameterized statements — no string concatenation. PostgreSQL-style $N converted to SQLite ? safely.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f4be;</div>
+          <div class="card-title">SQL Injection Prevention</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>Parameterized queries throughout</li>
+          <li>$N to ? conversion layer</li>
+          <li>No raw string SQL concatenation</li>
+        </ul>
+        <span class="file-ref">server/src/db/index.ts:52-75</span>
+      </div>
+
+      <div class="card yellow" data-tip="lodash.escape() used for tool outputs in chat rendering. DOMPurify available but commented out. No dedicated server-side XSS lib.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f9f9;</div>
+          <div class="card-title">XSS Prevention</div>
+        </div>
+        <span class="badge partial"><span class="badge-dot"></span>Partial</span>
+        <ul>
+          <li>lodash.escape() on tool names/results</li>
+          <li>Sanitized markdown code blocks</li>
+          <li><strong>Gap:</strong> DOMPurify commented out</li>
+          <li><strong>Gap:</strong> No server-side sanitization lib</li>
+        </ul>
+        <span class="file-ref">src/renderer/lib/format-chat.tsx:114-145</span>
+      </div>
+
+      <div class="card green" data-tip="SameSite=lax cookies + JWT auth means CSRF is structurally mitigated. No traditional form submissions.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f6ab;</div>
+          <div class="card-title">CSRF Protection</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>SameSite: lax on refresh cookie</li>
+          <li>JWT-based auth (no session cookies)</li>
+          <li>No traditional web forms</li>
+        </ul>
+        <span class="file-ref">server/src/routes/auth.ts:40-46</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Layer: Network & Transport ── -->
+  <div class="layer">
+    <div class="layer-label">Network &amp; Transport</div>
+    <div class="cards">
+
+      <div class="card green" data-tip="Configured for specific origins with credentials. Railway deployment URLs handled. Socket.io also has CORS.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f310;</div>
+          <div class="card-title">CORS Policy</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>Origin: env-configured (default localhost:1212)</li>
+          <li>Credentials: true (cookie support)</li>
+          <li>Railway .up.railway.app whitelisted</li>
+          <li>Socket.io CORS aligned</li>
+        </ul>
+        <span class="file-ref">server/src/middleware/cors.ts:8-21</span>
+      </div>
+
+      <div class="card yellow" data-tip="Secure flag and HttpOnly on cookies in production. But no HSTS, no CSP, no certificate pinning.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f510;</div>
+          <div class="card-title">HTTPS / Cookie Security</div>
+        </div>
+        <span class="badge partial"><span class="badge-dot"></span>Partial</span>
+        <ul>
+          <li>HttpOnly: true on refresh token</li>
+          <li>Secure: true in production</li>
+          <li><strong>Gap:</strong> No HSTS header</li>
+          <li><strong>Gap:</strong> No certificate pinning</li>
+        </ul>
+        <span class="file-ref">server/src/routes/auth.ts:40-46</span>
+      </div>
+
+      <div class="card red" data-tip="No express-rate-limit, no throttling on auth endpoints, no CAPTCHA, no DDoS protection.">
+        <div class="card-head">
+          <div class="card-icon">&#x23f1;</div>
+          <div class="card-title">Rate Limiting</div>
+        </div>
+        <span class="badge missing"><span class="badge-dot"></span>Missing</span>
+        <ul>
+          <li>No express-rate-limit middleware</li>
+          <li>No auth endpoint throttling</li>
+          <li>No CAPTCHA on registration</li>
+          <li>No socket message throttling</li>
+        </ul>
+      </div>
+
+      <div class="card red" data-tip="CSP code exists but is commented out. No helmet middleware. webSecurity: false in Electron.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f9f1;</div>
+          <div class="card-title">Security Headers (CSP)</div>
+        </div>
+        <span class="badge missing"><span class="badge-dot"></span>Missing</span>
+        <ul>
+          <li>CSP middleware commented out</li>
+          <li>No helmet middleware installed</li>
+          <li>Electron webSecurity: false</li>
+        </ul>
+        <span class="file-ref">src/main/main.ts:266, 338-343</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Layer: Application Security ── -->
+  <div class="layer">
+    <div class="layer-label">Application Security</div>
+    <div class="cards">
+
+      <div class="card cyan" data-tip="Admin endpoints for rules, violations, submissions. Severity levels: info/warning/critical. Actions: flagged/disabled/removed.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f6a8;</div>
+          <div class="card-title">Plugin Moderation</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>Plugin submission / approval workflow</li>
+          <li>Rule severity: info | warning | critical</li>
+          <li>Violation tracking + enforcement actions</li>
+          <li>Admin plugin removal capability</li>
+        </ul>
+        <span class="file-ref">server/src/routes/moderation.ts</span>
+      </div>
+
+      <div class="card yellow" data-tip="iframe sandbox restricts permissions. postMessage origin validated on receive but uses wildcard (*) on send.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f4e6;</div>
+          <div class="card-title">Plugin Sandboxing</div>
+        </div>
+        <span class="badge partial"><span class="badge-dot"></span>Partial</span>
+        <ul>
+          <li>iframe sandbox="allow-scripts allow-popups"</li>
+          <li>event.isTrusted check on receive</li>
+          <li>Origin verified via getPluginByOrigin</li>
+          <li><strong>Gap:</strong> postMessage sent with '*' origin</li>
+        </ul>
+        <span class="file-ref">src/renderer/components/PluginFrame/PluginFrame.tsx:172</span>
+      </div>
+
+      <div class="card green" data-tip="AppError class with status codes. Production mode returns generic messages. No stack traces leaked.">
+        <div class="card-head">
+          <div class="card-icon">&#x26a0;</div>
+          <div class="card-title">Error Handling</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>AppError class with structured codes</li>
+          <li>Generic messages in production</li>
+          <li>No stack trace leakage</li>
+          <li>Generic "Login failed" (no user enumeration)</li>
+        </ul>
+        <span class="file-ref">server/src/middleware/errorHandler.ts:45-66</span>
+      </div>
+
+      <div class="card yellow" data-tip="dotenv with .env.example. .gitignore covers .env. But weak hardcoded dev defaults for JWT secrets.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f5dd;</div>
+          <div class="card-title">Secrets Management</div>
+        </div>
+        <span class="badge partial"><span class="badge-dot"></span>Partial</span>
+        <ul>
+          <li>dotenv for environment config</li>
+          <li>.env in .gitignore</li>
+          <li>.env.example with placeholders</li>
+          <li><strong>Risk:</strong> Hardcoded dev JWT fallbacks</li>
+        </ul>
+        <span class="file-ref">server/src/config.ts:10-11</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Layer: Data & Storage ── -->
+  <div class="layer">
+    <div class="layer-label">Data &amp; Storage Security</div>
+    <div class="cards">
+
+      <div class="card green" data-tip="Foreign keys enforced, CHECK constraints on enums, UNIQUE on email, CASCADE deletes, session ownership verified.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f4ca;</div>
+          <div class="card-title">Database Integrity</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>PRAGMA foreign_keys = ON</li>
+          <li>CHECK constraints on role enums</li>
+          <li>UNIQUE on email</li>
+          <li>Session ownership verification</li>
+        </ul>
+        <span class="file-ref">server/src/db/index.ts:38 &middot; server/src/db/schema.sql</span>
+      </div>
+
+      <div class="card green" data-tip="JSON payload limited to 10MB via express.json().">
+        <div class="card-head">
+          <div class="card-icon">&#x1f4cf;</div>
+          <div class="card-title">Payload Size Limits</div>
+        </div>
+        <span class="badge implemented"><span class="badge-dot"></span>Implemented</span>
+        <ul>
+          <li>express.json limit: 10MB</li>
+          <li>Prevents oversized request bodies</li>
+        </ul>
+        <span class="file-ref">server/src/index.ts:41</span>
+      </div>
+
+      <div class="card yellow" data-tip="Sentry configured for error tracking. Basic console logging. No structured audit trail for security events.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f4dd;</div>
+          <div class="card-title">Monitoring &amp; Logging</div>
+        </div>
+        <span class="badge partial"><span class="badge-dot"></span>Partial</span>
+        <ul>
+          <li>Sentry error tracking (main + renderer)</li>
+          <li>electron-log for desktop</li>
+          <li><strong>Gap:</strong> No security audit trail table</li>
+          <li><strong>Gap:</strong> No login/logout event log</li>
+        </ul>
+        <span class="file-ref">src/main/adapters/sentry.ts</span>
+      </div>
+
+      <div class="card red" data-tip="No encryption at rest, no data masking, no backup encryption, no key rotation.">
+        <div class="card-head">
+          <div class="card-icon">&#x1f50f;</div>
+          <div class="card-title">Data Encryption at Rest</div>
+        </div>
+        <span class="badge missing"><span class="badge-dot"></span>Missing</span>
+        <ul>
+          <li>No field-level encryption</li>
+          <li>No encrypted backups</li>
+          <li>No key rotation mechanism</li>
+          <li>No PII masking in logs</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ SCALE REQUIREMENTS ═══════════ -->
+<div class="scale-section">
+  <div class="scale-title">Changes Required at Scale</div>
+  <div class="scale-subtitle">These become critical as ChatWeave moves beyond single-server to multi-instance production</div>
+  <div class="scale-grid">
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x23f1;</div>
+        <div class="scale-card-title">Distributed Rate Limiting</div>
+      </div>
+      <p>Replace missing rate limiter with Redis-backed distributed rate limiting (e.g., <code>rate-limiter-flexible</code> + Redis). Per-user, per-IP, and per-endpoint tiers. Auth endpoints need aggressive limits (5 req/min). WebSocket message throttling per connection.</p>
+      <span class="priority-tag critical">Critical</span>
+    </div>
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x1f512;</div>
+        <div class="scale-card-title">Secrets Vault Integration</div>
+      </div>
+      <p>Replace dotenv + hardcoded dev fallbacks with AWS Secrets Manager or HashiCorp Vault. Implement automatic key rotation for JWT secrets (zero-downtime dual-key validation during rotation window). Environment validation at startup to fail-fast on missing secrets.</p>
+      <span class="priority-tag critical">Critical</span>
+    </div>
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x1f4ca;</div>
+        <div class="scale-card-title">Centralized Audit Logging</div>
+      </div>
+      <p>Add structured JSON logging (winston/pino) with correlation IDs. Security event audit table: logins, permission changes, admin actions, data access. Ship logs to ELK/Datadog. Required for SOC 2 and GDPR compliance at scale.</p>
+      <span class="priority-tag critical">Critical</span>
+    </div>
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x1f9f1;</div>
+        <div class="scale-card-title">Security Headers &amp; CSP</div>
+      </div>
+      <p>Deploy <code>helmet</code> middleware for HSTS, X-Content-Type-Options, X-Frame-Options. Define strict Content-Security-Policy. Re-enable Electron webSecurity. Required to prevent clickjacking and MIME-sniffing attacks at scale.</p>
+      <span class="priority-tag high">High</span>
+    </div>
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x1f464;</div>
+        <div class="scale-card-title">OAuth2 / SSO + MFA</div>
+      </div>
+      <p>The OAuth hooks exist as stubs — implement Google/GitHub SSO for enterprise adoption. Add TOTP-based MFA for admin and teacher accounts. Token revocation list (Redis) for immediate session invalidation. Account lockout after 5 failed attempts.</p>
+      <span class="priority-tag high">High</span>
+    </div>
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x1f4be;</div>
+        <div class="scale-card-title">Database: RLS + Encryption</div>
+      </div>
+      <p>Migrate from SQLite to PostgreSQL with Row-Level Security policies per tenant. Encrypt PII fields (email, display name) at rest with application-level encryption (AES-256-GCM). Encrypted automated backups with point-in-time recovery.</p>
+      <span class="priority-tag high">High</span>
+    </div>
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x1f50d;</div>
+        <div class="scale-card-title">AI Content Moderation</div>
+      </div>
+      <p>Add automated content moderation pipeline for user messages and AI responses. Profanity filters, toxicity classifiers, PII detection (redact before storage). Plugin-generated content scanning before rendering in chat.</p>
+      <span class="priority-tag medium">Medium</span>
+    </div>
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x1f6e1;</div>
+        <div class="scale-card-title">WAF &amp; DDoS Protection</div>
+      </div>
+      <p>Deploy Web Application Firewall (Cloudflare/AWS WAF) in front of the API. Bot detection, geo-blocking, request anomaly detection. WebSocket connection limits per IP. Separate public and internal API surfaces.</p>
+      <span class="priority-tag medium">Medium</span>
+    </div>
+
+    <div class="scale-card">
+      <div class="scale-card-head">
+        <div class="scale-card-icon">&#x1f4e6;</div>
+        <div class="scale-card-title">Plugin Security Hardening</div>
+      </div>
+      <p>Fix postMessage wildcard origin (<code>'*'</code> → specific origin). Add plugin CSP per-frame. Deep schema validation on all message payloads. Plugin resource quotas (CPU, memory, network). Automated security review for plugin submissions.</p>
+      <span class="priority-tag medium">Medium</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<div class="footer">
+  ChatWeave Security Audit &middot; Generated 2026-04-05 &middot; 16 controls audited &middot; 9 implemented &middot; 5 partial &middot; 4 missing &middot; 9 scale recommendations
+</div>
+
+<script>
+  // ── Tooltip logic ──
+  const tooltip = document.getElementById('tooltip');
+  document.querySelectorAll('[data-tip]').forEach(el => {
+    el.addEventListener('mouseenter', e => {
+      tooltip.textContent = el.dataset.tip;
+      tooltip.classList.add('visible');
+    });
+    el.addEventListener('mousemove', e => {
+      const pad = 16;
+      let x = e.clientX + pad;
+      let y = e.clientY + pad;
+      if (x + 340 > window.innerWidth) x = e.clientX - 340;
+      if (y + 120 > window.innerHeight) y = e.clientY - 120;
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+    });
+    el.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+  });
+</script>
+</body>
+</html>

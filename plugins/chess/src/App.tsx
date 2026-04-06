@@ -330,6 +330,27 @@ export default function App() {
     }
   }, [gameState, makeAIMove, checkGameOver]);
 
+  // Send resize to parent after game board renders
+  useEffect(() => {
+    if (gameState) {
+      // Measure after board has fully painted
+      const sendResize = () => {
+        requestAnimationFrame(() => {
+          const h = document.documentElement.scrollHeight;
+          sendToParent({
+            type: 'PLUGIN_RESIZE',
+            messageId: generateMessageId(),
+            payload: { height: Math.max(h, 620) },
+          });
+        });
+      };
+      // Fire twice: once quickly for fast renders, once delayed for slow paints
+      const t1 = setTimeout(sendResize, 100);
+      const t2 = setTimeout(sendResize, 800);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [gameState?.game.fen()]);
+
   const isDark = theme === 'dark';
 
   const containerStyle: React.CSSProperties = {

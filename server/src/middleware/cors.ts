@@ -12,7 +12,7 @@ export const corsMiddleware = cors({
     if (!origin || allowed.includes(origin) || origin.endsWith('.up.railway.app')) {
       callback(null, true);
     } else {
-      callback(null, true); // Allow all in dev; restrict in production if needed
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
     }
   },
   credentials: true,

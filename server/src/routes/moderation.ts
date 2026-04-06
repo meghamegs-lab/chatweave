@@ -3,8 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne, queryAll } from '../db';
 import { pluginRegistry } from '../services/pluginRegistry';
 import { AppError } from '../middleware/errorHandler';
+import { authMiddleware, requireRole } from '../middleware/auth';
 
 const router = Router();
+
+// All moderation routes require authentication
+router.use(authMiddleware);
 
 // ─── Plugin Rules ───────────────────────────────────────────────────────────
 
@@ -52,7 +56,7 @@ router.get('/violations', async (req: Request, res: Response, next: NextFunction
 });
 
 /** POST /api/moderation/violations — Report a violation against a plugin */
-router.post('/violations', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/violations', requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { plugin_id, rule_id, reason, action } = req.body;
 
@@ -94,7 +98,7 @@ router.post('/violations', async (req: Request, res: Response, next: NextFunctio
 // ─── Immediate Removal ─────────────────────────────────────────────────────
 
 /** POST /api/moderation/plugins/:id/remove — Immediately remove a plugin for rule violation */
-router.post('/plugins/:id/remove', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/plugins/:id/remove', requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pluginId = req.params.id as string;
     const { reason, rule_id } = req.body;
@@ -175,7 +179,7 @@ router.post('/submissions', async (req: Request, res: Response, next: NextFuncti
 });
 
 /** POST /api/moderation/submissions/:id/approve — Approve a submission and register the plugin */
-router.post('/submissions/:id/approve', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/submissions/:id/approve', requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const submissionId = req.params.id as string;
 
@@ -195,7 +199,7 @@ router.post('/submissions/:id/approve', async (req: Request, res: Response, next
 
     // Update submission status
     await query(`
-      UPDATE plugin_submissions SET status = 'approved', review_notes = $1, updated_at = NOW()
+      UPDATE plugin_submissions SET status = 'approved', review_notes = $1, updated_at = CURRENT_TIMESTAMP
       WHERE id = $2
     `, [req.body.notes || null, submissionId]);
 
@@ -206,7 +210,7 @@ router.post('/submissions/:id/approve', async (req: Request, res: Response, next
 });
 
 /** POST /api/moderation/submissions/:id/reject — Reject a submission */
-router.post('/submissions/:id/reject', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/submissions/:id/reject', requireRole('teacher', 'admin'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const submissionId = req.params.id as string;
 
@@ -220,7 +224,7 @@ router.post('/submissions/:id/reject', async (req: Request, res: Response, next:
     }
 
     await query(`
-      UPDATE plugin_submissions SET status = 'rejected', review_notes = $1, updated_at = NOW()
+      UPDATE plugin_submissions SET status = 'rejected', review_notes = $1, updated_at = CURRENT_TIMESTAMP
       WHERE id = $2
     `, [req.body.reason || 'Does not meet platform guidelines', submissionId]);
 

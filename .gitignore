@@ -204,3 +204,8 @@ CHECKLIST.md
 *.db
 *.db-wal
 *.db-shm
+server/postgresql:
+server/chatbridge.db
+
+# Environment files
+server/.env

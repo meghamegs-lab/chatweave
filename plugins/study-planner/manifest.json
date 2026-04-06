@@ -1,0 +1,50 @@
+{
+  "id": "study-planner",
+  "name": "Study Planner",
+  "version": "1.0.0",
+  "description": "AI-powered study planning tool that connects to your Google account to create personalized study schedules, track progress, and set learning goals",
+  "iframe_url": "/plugins/study-planner/",
+  "category": "education",
+  "auth_type": "oauth2",
+  "oauth_config": {
+    "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "scopes": ["profile", "email"],
+    "client_id": "chatweave-study-planner"
+  },
+  "sandbox": { "permissions": ["allow-scripts", "allow-popups"] },
+  "ui": { "default_height": 520, "max_height": 700, "resizable": true },
+  "tools": [
+    {
+      "name": "create_study_plan",
+      "description": "Create a personalized study plan for a subject with scheduled sessions, goals, and milestones",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "The subject to study (e.g., 'Math', 'Science', 'History', 'English')"
+          },
+          "goal": {
+            "type": "string",
+            "description": "The learning goal (e.g., 'Master fractions', 'Learn about the solar system')"
+          },
+          "duration_weeks": {
+            "type": "integer",
+            "description": "Number of weeks for the study plan (1-12)"
+          }
+        },
+        "required": ["subject", "goal"]
+      }
+    },
+    {
+      "name": "get_study_progress",
+      "description": "Get current study plan progress, completed sessions, and upcoming tasks",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "completion_events": ["plan_created", "session_completed"]
+}

@@ -132,4 +132,49 @@ router.get('/forecast', async (req: Request, res: Response, next: NextFunction) 
   }
 });
 
+// GET /api/proxy/trivia?category=science&difficulty=easy
+// Demonstrates API-key proxy pattern — key stored server-side, never exposed to client
+router.get('/trivia', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const category = req.query.category as string || 'science';
+    const difficulty = req.query.difficulty as string || 'easy';
+
+    // In production, this would use a real API key stored in env vars:
+    // const apiKey = process.env.TRIVIA_API_KEY;
+    // const url = `https://api.example.com/trivia?key=${apiKey}&category=${category}&difficulty=${difficulty}`;
+    // The key is NEVER sent to the plugin — only the server sees it.
+
+    // For demo: return curated science questions
+    const questions: Record<string, any[]> = {
+      easy: [
+        { question: 'What planet is known as the Red Planet?', answer: 'Mars', options: ['Mars', 'Venus', 'Jupiter', 'Saturn'] },
+        { question: 'What gas do plants absorb from the atmosphere?', answer: 'Carbon dioxide', options: ['Oxygen', 'Carbon dioxide', 'Nitrogen', 'Hydrogen'] },
+        { question: 'How many legs does an insect have?', answer: '6', options: ['4', '6', '8', '10'] },
+      ],
+      medium: [
+        { question: 'What is the chemical symbol for gold?', answer: 'Au', options: ['Au', 'Ag', 'Fe', 'Go'] },
+        { question: 'What is the speed of light in km/s (approximately)?', answer: '300,000', options: ['150,000', '300,000', '500,000', '1,000,000'] },
+        { question: 'What organelle is the powerhouse of the cell?', answer: 'Mitochondria', options: ['Nucleus', 'Ribosome', 'Mitochondria', 'Golgi body'] },
+      ],
+      hard: [
+        { question: 'What is the half-life of Carbon-14?', answer: '5,730 years', options: ['1,200 years', '5,730 years', '10,000 years', '50,000 years'] },
+        { question: 'What is the Chandrasekhar limit?', answer: '1.4 solar masses', options: ['0.5 solar masses', '1.4 solar masses', '3.0 solar masses', '10 solar masses'] },
+        { question: "What is the SI unit of electrical resistance?", answer: 'Ohm', options: ['Volt', 'Ampere', 'Ohm', 'Watt'] },
+      ],
+    };
+
+    const pool = questions[difficulty] || questions['easy'];
+
+    res.json({
+      category,
+      difficulty,
+      questions: pool,
+      source: 'server-proxied',
+      note: 'API key stored server-side, never exposed to client plugin',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export { router as proxyRouter };

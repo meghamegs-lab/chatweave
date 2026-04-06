@@ -31,5 +31,5 @@
   ],
   "completion_events": ["game_finished", "game_abandoned"],
   "sandbox": { "permissions": ["allow-scripts"] },
-  "ui": { "default_height": 500, "max_height": 600, "resizable": false }
+  "ui": { "default_height": 620, "max_height": 800, "resizable": false }
 }
